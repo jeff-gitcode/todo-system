@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 export default function TodosPage() {
-    const { todos, loading, deleteTodo } = useTodos();
+    const { todos, loading, deleteTodo, fetchError } = useTodos();
     const router = useRouter();
 
     const handleDelete = (id: string) => {
@@ -23,6 +23,11 @@ export default function TodosPage() {
             Loading...
         </Card>
     );
+
+    // Handle any fetch error
+    if (fetchError) {
+        throw fetchError
+    }
 
     return (
         <Card className="p-6 max-w-xl mx-auto">

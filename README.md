@@ -62,4 +62,38 @@ public/                # Static assets
 - [Tailwind CSS Documentation](https://tailwindcss.com/docs)
 - [TanStack Query Documentation](https://tanstack.com/query/v5)
 
+## Storybook Support
+
+This project supports [Storybook](https://storybook.js.org/) for developing, testing, and documenting UI components in isolation.
+
+### Install Storybook
+
+```bash
+npm install --save-dev storybook @storybook/react @storybook/addon-actions @storybook/addon-links @storybook/addon-essentials @storybook/addon-interactions
+```
+
+### Initialize Storybook
+
+```bash
+npx storybook init
+```
+
+### Run Storybook
+
+```bash
+npm run storybook
+```
+
+Storybook will be available at [http://localhost:6006](http://localhost:6006).
+
+### Why Storybook?
+
+- Build UI components and pages in isolation
+- Mock hard-to-reach edge cases as stories
+- Integrate with tools like Next.js, Tailwind CSS, Jest, and more
+- Document UI for your team to reuse
+- Automate UI workflows with CI
+
+Learn more at [storybook.js.org](https://storybook.js.org/)
+
 ## License

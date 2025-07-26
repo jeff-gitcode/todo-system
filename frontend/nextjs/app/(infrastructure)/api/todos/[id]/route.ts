@@ -5,7 +5,7 @@ import { api } from '../../apiClient';
 
 const BASE_API = 'http://localhost:3001/todos';
 const TODOS_ENDPOINT = '/todos';
-export async function GET(req: NextRequest, context: { params: { id: string } }) {
+export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
     const { id } = await context.params;
     console.log(id);
     try {
@@ -16,7 +16,7 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
     }
 }
 
-export async function DELETE(req: NextRequest, context: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, context: { params: Promise<{ id: string }> }) {
     const { id } = await context.params;
     console.log(id);
     try {

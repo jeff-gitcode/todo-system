@@ -10,8 +10,8 @@ export async function GET() {
     try {
         const res = await api.get<Todo[]>(TODOS_ENDPOINT);
         return NextResponse.json(res.data);
-    } catch (error: any) {
-        return NextResponse.json({ error: 'Failed to fetch todos' }, { status: error?.response?.status || 500 });
+    } catch (error: unknown) {
+        return NextResponse.json({ error: 'Failed to fetch todos' }, { status: 500 });
     }
 }
 
@@ -21,8 +21,8 @@ export async function POST(req: NextRequest) {
     try {
         const res = await api.post<Todo>(TODOS_ENDPOINT, { id, title });
         return NextResponse.json(res.data, { status: 201 });
-    } catch (error: any) {
-        return NextResponse.json({ error: 'Failed to create todo' }, { status: error?.response?.status || 500 });
+    } catch (error: unknown) {
+        return NextResponse.json({ error: 'Failed to create todo' }, { status: 500 });
     }
 }
 
@@ -32,7 +32,7 @@ export async function PUT(req: NextRequest) {
     try {
         const res = await axios.put<Todo>(`${BASE_API}/${encodeURIComponent(id)}`, { title });
         return NextResponse.json(res.data);
-    } catch (error: any) {
-        return NextResponse.json({ error: 'Failed to update todo' }, { status: error?.response?.status || 500 });
+    } catch (error: unknown) {
+        return NextResponse.json({ error: 'Failed to update todo' }, { status: 500 });
     }
 }

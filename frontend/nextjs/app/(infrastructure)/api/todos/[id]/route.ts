@@ -11,8 +11,8 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
     try {
         const res = await api.get<Todo>(`${TODOS_ENDPOINT}/${encodeURIComponent(id)}`);
         return NextResponse.json(res.data);
-    } catch (error: any) {
-        return NextResponse.json({ error: 'Not found' }, { status: error?.response?.status || 500 });
+    } catch (error: unknown) {
+        return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 }
 
@@ -22,7 +22,7 @@ export async function DELETE(req: NextRequest, context: { params: { id: string }
     try {
         await api.delete(`${TODOS_ENDPOINT}/${encodeURIComponent(id)}`);
         return NextResponse.json({ success: true });
-    } catch (error: any) {
-        return NextResponse.json({ error: 'Delete failed' }, { status: error?.response?.status || 500 });
+    } catch (error: unknown) {
+        return NextResponse.json({ error: 'Delete failed' }, { status: 500 });
     }
 }

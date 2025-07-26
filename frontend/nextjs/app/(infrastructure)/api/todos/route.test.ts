@@ -1,8 +1,8 @@
-const { GET, POST, PUT } = require('./route');
-const { api } = require('../apiClient');
-const axios = require('axios');
-const { v4: uuidv4 } = require('uuid');
-const { NextResponse } = require('next/server');
+import { GET, POST, PUT } from './route';
+import { api } from '../apiClient';
+import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
+import { NextRequest, NextResponse } from 'next/server';
 
 jest.mock('../apiClient', () => ({
     api: {
@@ -28,7 +28,7 @@ describe('Todos API route', () => {
     const mockTitle = 'New Todo';
     const request = {
         json: jest.fn(),
-    };
+    } as Partial<NextRequest> as NextRequest;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -37,8 +37,8 @@ describe('Todos API route', () => {
     describe('GET', () => {
         it('should return todos on success', async () => {
             // Arrange
-            api.get.mockResolvedValue({ data: mockTodos });
-            NextResponse.json.mockImplementation((data, opts) => ({ data, opts }));
+            (api.get as jest.Mock).mockResolvedValue({ data: mockTodos });
+            (NextResponse.json as jest.Mock).mockImplementation((data, opts) => ({ data, opts }));
 
             // Act
             const response = await GET();
@@ -50,8 +50,8 @@ describe('Todos API route', () => {
 
         it('should return 500 error on failure', async () => {
             // Arrange
-            api.get.mockRejectedValue(new Error('fail'));
-            NextResponse.json.mockImplementation((data, opts) => ({ data, opts }));
+            (api.get as jest.Mock).mockRejectedValue(new Error('fail'));
+            (NextResponse.json as jest.Mock).mockImplementation((data, opts) => ({ data, opts }));
 
             // Act
             const response = await GET();
@@ -65,10 +65,10 @@ describe('Todos API route', () => {
     describe('POST', () => {
         it('should create todo and return 201 on success', async () => {
             // Arrange
-            request.json.mockResolvedValue({ title: mockTitle });
-            uuidv4.mockReturnValue(mockId);
-            api.post.mockResolvedValue({ data: mockTodo });
-            NextResponse.json.mockImplementation((data, opts) => ({ data, opts }));
+            (request.json as jest.Mock).mockResolvedValue({ title: mockTitle });
+            (uuidv4 as jest.Mock).mockReturnValue(mockId);
+            (api.post as jest.Mock).mockResolvedValue({ data: mockTodo });
+            (NextResponse.json as jest.Mock).mockImplementation((data, opts) => ({ data, opts }));
 
             // Act
             const response = await POST(request);
@@ -82,10 +82,10 @@ describe('Todos API route', () => {
 
         it('should return 500 error on failure', async () => {
             // Arrange
-            request.json.mockResolvedValue({ title: mockTitle });
-            uuidv4.mockReturnValue(mockId);
-            api.post.mockRejectedValue(new Error('fail'));
-            NextResponse.json.mockImplementation((data, opts) => ({ data, opts }));
+            (request.json as jest.Mock).mockResolvedValue({ title: mockTitle });
+            (uuidv4 as jest.Mock).mockReturnValue(mockId);
+            (api.post as jest.Mock).mockRejectedValue(new Error('fail'));
+            (NextResponse.json as jest.Mock).mockImplementation((data, opts) => ({ data, opts }));
 
             // Act
             const response = await POST(request);
@@ -101,9 +101,9 @@ describe('Todos API route', () => {
     describe('PUT', () => {
         it('should update todo and return updated todo on success', async () => {
             // Arrange
-            request.json.mockResolvedValue({ id: mockId, title: mockTitle });
-            axios.put.mockResolvedValue({ data: mockTodo });
-            NextResponse.json.mockImplementation((data, opts) => ({ data, opts }));
+            (request.json as jest.Mock).mockResolvedValue({ id: mockId, title: mockTitle });
+            (axios.put as jest.Mock).mockResolvedValue({ data: mockTodo });
+            (NextResponse.json as jest.Mock).mockImplementation((data, opts) => ({ data, opts }));
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
 
             // Act
@@ -123,9 +123,9 @@ describe('Todos API route', () => {
 
         it('should return 500 error on failure', async () => {
             // Arrange
-            request.json.mockResolvedValue({ id: mockId, title: mockTitle });
-            axios.put.mockRejectedValue(new Error('fail'));
-            NextResponse.json.mockImplementation((data, opts) => ({ data, opts }));
+            (request.json as jest.Mock).mockResolvedValue({ id: mockId, title: mockTitle });
+            (axios.put as jest.Mock).mockRejectedValue(new Error('fail'));
+            (NextResponse.json as jest.Mock).mockImplementation((data, opts) => ({ data, opts }));
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
 
             // Act

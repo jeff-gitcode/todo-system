@@ -18,6 +18,6 @@ export const todoRepository: ITodoRepository = {
         return res.data;
     },
     async delete(id: string) {
-        await axios.delete(`${API_URL}/${id}`);
+        await axios.delete(`${API_URL}`, {id });
     }
 };

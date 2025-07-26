@@ -3,11 +3,9 @@ import axios from 'axios';
 import { Todo } from '@domain/models';
 import { api } from '../../apiClient';
 
-const BASE_API = 'http://localhost:3001/todos';
 const TODOS_ENDPOINT = '/todos';
-export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+export async function GET(context: { params: Promise<{ id: string }> }) {
     const { id } = await context.params;
-    console.log(id);
     try {
         const res = await api.get<Todo>(`${TODOS_ENDPOINT}/${encodeURIComponent(id)}`);
         return NextResponse.json(res.data);
@@ -16,9 +14,8 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
     }
 }
 
-export async function DELETE(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+export async function DELETE(context: { params: Promise<{ id: string }> }) {
     const { id } = await context.params;
-    console.log(id);
     try {
         await api.delete(`${TODOS_ENDPOINT}/${encodeURIComponent(id)}`);
         return NextResponse.json({ success: true });

@@ -14,10 +14,10 @@ export const todoRepository: ITodoRepository = {
         return res.data;
     },
     async update(id: string, title: string) {
-        const res = await axios.put<Todo>(`${API_URL}/${id}`, { title });
+        const res = await axios.put<Todo>(`${API_URL}/${encodeURIComponent(id)}`, { title });
         return res.data;
     },
     async delete(id: string) {
-        await axios.delete(`${API_URL}`, {id });
+        await axios.delete(`${API_URL}/${encodeURIComponent(id)}`);
     }
 };

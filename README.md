@@ -96,4 +96,37 @@ Storybook will be available at [http://localhost:6006](http://localhost:6006).
 
 Learn more at [storybook.js.org](https://storybook.js.org/)
 
+## Mock API with json-server
+
+This project uses [json-server](https://github.com/typicode/json-server) to provide a mock REST API for TODO CRUD operations.
+
+### Install json-server
+
+```bash
+npm install --save-dev json-server
+```
+
+### Configure json-server
+
+Create a `db.json` file in the `frontend/nextjs` directory with initial data:
+
+```json
+{
+  "todos": [
+    { "id": "1", "title": "Learn React" },
+    { "id": "2", "title": "Finish homework" },
+    { "id": "3", "title": "Read documentation" }
+  ]
+}
+```
+
+### Run json-server
+
+```bash
+npm run json-server
+```
+
+This will start the mock API at [http://localhost:3001/todos](http://localhost:3001/todos).
+
+
 ## License

@@ -34,7 +34,7 @@ export default function TodosPage() {
                             className="cursor-pointer hover:underline"
                             onClick={() => router.push(`/todos/${todo.id}`)}
                         >
-                            {todo.title}
+                            {todo.id}  {todo.title}
                         </span>
                         <div className="flex gap-2">
                             <Button
@@ -55,7 +55,7 @@ export default function TodosPage() {
                     </li>
                 ))}
             </ul>
-            <Button className="w-full">Add TODO</Button>
+            <Button className="w-full" onClick={() => router.push(`/todos/new?edit=1`)}>Add TODO</Button>
         </Card>
     );
 }

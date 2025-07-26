@@ -1,18 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
+import axios from 'axios';
 import { Todo } from '@domain/models';
 
-// mock data, should be replaced with real data source in production
-const todos: Todo[] = [
-    { id: '1', title: 'Learn React' },
-    { id: '2', title: 'Finish homework' },
-    { id: '3', title: 'Read documentation' }
-];
+const BASE_API = 'http://localhost:3001/todos';
 
 export async function GET(req: NextRequest, context: { params: { id: string } }) {
     const { id } = await context.params;
-    const todo = todos.find(t => t.id === id);
-    if (todo) {
-        return NextResponse.json(todo);
+    console.log(id);
+    try {
+        const res = await axios.get<Todo>(`${BASE_API}/${encodeURIComponent(id)}`);
+        return NextResponse.json(res.data);
+    } catch (error: any) {
+        return NextResponse.json({ error: 'Not found' }, { status: error?.response?.status || 500 });
     }
-    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+}
+
+export async function DELETE(req: NextRequest, context: { params: { id: string } }) {
+    const { id } = await context.params;
+    console.log(id);
+    try {
+        await axios.delete(`${BASE_API}/${encodeURIComponent(id)}`);
+        return NextResponse.json({ success: true });
+    } catch (error: any) {
+        return NextResponse.json({ error: 'Delete failed' }, { status: error?.response?.status || 500 });
+    }
 }

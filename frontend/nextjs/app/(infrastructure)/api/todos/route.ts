@@ -1,38 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
+import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 import { Todo } from '@domain/models';
 
-let todos: Todo[] = [
-    { id: '1', title: 'Learn React' },
-    { id: '2', title: 'Finish homework' },
-    { id: '3', title: 'Read documentation' }
-];
+const BASE_API = 'http://localhost:3001/todos';
 
 export async function GET() {
-    return NextResponse.json(todos);
+    try {
+        const res = await axios.get<Todo[]>(BASE_API);
+        return NextResponse.json(res.data);
+    } catch (error: any) {
+        return NextResponse.json({ error: 'Failed to fetch todos' }, { status: error?.response?.status || 500 });
+    }
 }
 
 export async function POST(req: NextRequest) {
     const { title } = await req.json();
-    const newTodo: Todo = {
-        id: (Date.now() + Math.random()).toString(),
-        title
-    };
-    todos.push(newTodo);
-    return NextResponse.json(newTodo, { status: 201 });
+    const id = uuidv4();
+    try {
+        const res = await axios.post<Todo>(BASE_API, { id, title });
+        return NextResponse.json(res.data, { status: 201 });
+    } catch (error: any) {
+        return NextResponse.json({ error: 'Failed to create todo' }, { status: error?.response?.status || 500 });
+    }
 }
 
 export async function PUT(req: NextRequest) {
     const { id, title } = await req.json();
-    const todo = todos.find(t => t.id === id);
-    if (todo) {
-        todo.title = title;
-        return NextResponse.json(todo);
+    try {
+        const res = await axios.put<Todo>(`${BASE_API}/${encodeURIComponent(id)}`, { title });
+        return NextResponse.json(res.data);
+    } catch (error: any) {
+        return NextResponse.json({ error: 'Failed to update todo' }, { status: error?.response?.status || 500 });
     }
-    return NextResponse.json({ error: 'Not found' }, { status: 404 });
-}
-
-export async function DELETE(req: NextRequest) {
-    const { id } = await req.json();
-    todos = todos.filter(t => t.id !== id);
-    return NextResponse.json({ success: true });
 }

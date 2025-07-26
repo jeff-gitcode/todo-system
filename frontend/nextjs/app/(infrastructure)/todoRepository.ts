@@ -1,23 +1,23 @@
-import axios from 'axios';
 import { ITodoRepository } from '@domain/repositories';
 import { Todo } from '@domain/models';
+import { localApi } from './api/apiClient';
 
-const API_URL = '/api/todos';
+const END_POINT = '/todos';
 
 export const todoRepository: ITodoRepository = {
     async getAll() {
-        const res = await axios.get<Todo[]>(API_URL);
+        const res = await localApi.get<Todo[]>(END_POINT);
         return res.data;
     },
     async create(title: string) {
-        const res = await axios.post<Todo>(API_URL, { title });
+        const res = await localApi.post<Todo>(END_POINT, { title });
         return res.data;
     },
     async update(id: string, title: string) {
-        const res = await axios.put<Todo>(`${API_URL}/${encodeURIComponent(id)}`, { title });
+        const res = await localApi.put<Todo>(END_POINT, { id, title });
         return res.data;
     },
     async delete(id: string) {
-        await axios.delete(`${API_URL}/${encodeURIComponent(id)}`);
+        await localApi.delete(`${END_POINT}/${encodeURIComponent(id)}`);
     }
 };

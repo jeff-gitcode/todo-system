@@ -128,5 +128,9 @@ npm run json-server
 
 This will start the mock API at [http://localhost:3001/todos](http://localhost:3001/todos).
 
-
+### Add jest
+```bash
+yarn add -D jest jest-environment-jsdom @testing-library/react @testing-library/dom @testing-library/jest-dom ts-node @types/jest
+yarn create jest@latest
+```
 ## License

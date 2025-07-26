@@ -1,0 +1,40 @@
+### Get all TODOs
+GET http://localhost:3000/api/todos
+Accept: application/json
+
+###
+
+### Create a new TODO
+POST http://localhost:3000/api/todos
+Content-Type: application/json
+
+{
+  "title": "New Task"
+}
+
+###
+
+### Get TODO by ID
+GET http://localhost:3000/api/todos/1
+Accept: application/json
+
+###
+
+### Update TODO
+PUT http://localhost:3000/api/todos
+Content-Type: application/json
+
+{
+  "id": "1",
+  "title": "Updated Task"
+}
+
+###
+
+### Delete TODO
+DELETE http://localhost:3000/api/todos
+Content-Type: application/json
+
+{
+  "id": "1"
+}

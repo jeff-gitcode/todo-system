@@ -1,0 +1,68 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "baseUrl": ".", // Added baseUrl to allow non-relative paths in 'paths'
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": [
+        "./*"
+      ],
+      "@components/*": [
+        "app/components/*"
+      ],
+      "@hooks/*": [
+        "app/hooks/*"
+      ],
+      "@lib/*": [
+        "app/lib/*"
+      ],
+      "@public/*": [
+        "app/public/*"
+      ],
+      "@styles/*": [
+        "app/styles/*"
+      ],
+      "@domain/*": [
+        "app/domain/*"
+      ],
+      "@presentation/*": [
+        "app/(presentation)/*"
+      ],
+      "@application/*": [
+        "app/application/*"
+      ],
+      "@infrastructure/*": [
+        "app/(infrastructure)/*"
+      ]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

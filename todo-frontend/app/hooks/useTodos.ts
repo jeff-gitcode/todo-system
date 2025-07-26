@@ -1,0 +1,39 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { todoService } from '@application/todoService';
+import { Todo } from '@domain/models';
+
+export function useTodos() {
+    const queryClient = useQueryClient();
+
+    // 查询所有 TODO
+    const { data: todos = [], isLoading: loading } = useQuery<Todo[]>({
+        queryKey: ['todos'],
+        queryFn: () => todoService.getAll(),
+    });
+
+    // 新建 TODO
+    const createTodo = useMutation({
+        mutationFn: (title: string) => todoService.create(title),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['todos'] }),
+    });
+
+    // 更新 TODO
+    const updateTodo = useMutation({
+        mutationFn: ({ id, title }: { id: string; title: string }) => todoService.update(id, title),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['todos'] }),
+    });
+
+    // 删除 TODO
+    const deleteTodo = useMutation({
+        mutationFn: (id: string) => todoService.delete(id),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['todos'] }),
+    });
+
+    return {
+        todos,
+        loading,
+        createTodo,
+        updateTodo,
+        deleteTodo,
+    };
+}

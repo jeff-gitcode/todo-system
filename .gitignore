@@ -1,0 +1,20 @@
+# todo-frontend
+todo-frontend/node_modules/
+todo-frontend/.next/
+todo-frontend/out/
+todo-frontend/build/
+todo-frontend/.vercel
+todo-frontend/.tailwind
+todo-frontend/coverage/
+todo-frontend/.env*
+todo-frontend/Thumbs.db
+todo-frontend/.DS_Store
+todo-frontend/*.tsbuildinfo
+todo-frontend/npm-debug.log*
+todo-frontend/yarn-debug.log*
+todo-frontend/yarn-error.log*
+todo-frontend/pnpm-debug.log*
+todo-frontend/.vscode/
+todo-frontend/.idea/
+
+instructions/

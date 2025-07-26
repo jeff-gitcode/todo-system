@@ -19,7 +19,7 @@ export default function TodoDetailPage() {
     const [todo, setTodo] = useState<{ id: string; title: string } | null>(null);
 
     // For edit mode
-    const [isEdit, setIsEdit] = useState(isNew);
+    const [isEdit, setIsEdit] = useState(isNew || searchParams.get('edit') === '1');
 
     // Load todo if not new
     useEffect(() => {

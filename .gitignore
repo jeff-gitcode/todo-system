@@ -1,21 +1,21 @@
-# todo-frontend
-todo-frontend/node_modules/
-todo-frontend/.next/
-todo-frontend/out/
-todo-frontend/build/
-todo-frontend/.vercel
-todo-frontend/.tailwind
-todo-frontend/coverage/
-todo-frontend/.env*
-todo-frontend/Thumbs.db
-todo-frontend/.DS_Store
-todo-frontend/*.tsbuildinfo
-todo-frontend/npm-debug.log*
-todo-frontend/yarn-debug.log*
-todo-frontend/yarn-error.log*
-todo-frontend/pnpm-debug.log*
-todo-frontend/.vscode/
-todo-frontend/.idea/
+# frontend/nextjs
+frontend/nextjs/node_modules/
+frontend/nextjs/.next/
+frontend/nextjs/out/
+frontend/nextjs/build/
+frontend/nextjs/.vercel
+frontend/nextjs/.tailwind
+frontend/nextjs/coverage/
+frontend/nextjs/.env*
+frontend/nextjs/Thumbs.db
+frontend/nextjs/.DS_Store
+frontend/nextjs/*.tsbuildinfo
+frontend/nextjs/npm-debug.log*
+frontend/nextjs/yarn-debug.log*
+frontend/nextjs/yarn-error.log*
+frontend/nextjs/pnpm-debug.log*
+frontend/nextjs/.vscode/
+frontend/nextjs/.idea/
 
 instructions/
 

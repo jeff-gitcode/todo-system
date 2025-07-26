@@ -4,7 +4,7 @@ import { Todo } from '@domain/models';
 import { api } from '../../apiClient';
 
 const TODOS_ENDPOINT = '/todos';
-export async function GET(context: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
     const { id } = await context.params;
     try {
         const res = await api.get<Todo>(`${TODOS_ENDPOINT}/${encodeURIComponent(id)}`);
@@ -14,7 +14,7 @@ export async function GET(context: { params: Promise<{ id: string }> }) {
     }
 }
 
-export async function DELETE(context: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, context: { params: Promise<{ id: string }> }) {
     const { id } = await context.params;
     try {
         await api.delete(`${TODOS_ENDPOINT}/${encodeURIComponent(id)}`);

@@ -1,243 +1,146 @@
-describe('PUT', () => {
-    const mockId = 'test-id';
-    const mockTitle = 'Test Title';
-    const mockTodo = { id: mockId, title: mockTitle };
+const { GET, POST, PUT } = require('./route');
+const { api } = require('../apiClient');
+const axios = require('axios');
+const { v4: uuidv4 } = require('uuid');
+const { NextResponse } = require('next/server');
 
-    let mockReq: any;
+jest.mock('../apiClient', () => ({
+    api: {
+        get: jest.fn(),
+        post: jest.fn(),
+    },
+}));
+jest.mock('axios');
+jest.mock('uuid', () => ({
+    v4: jest.fn(),
+}));
+jest.mock('next/server', () => ({
+    NextRequest: jest.fn(),
+    NextResponse: {
+        json: jest.fn(),
+    },
+}));
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-        mockReq = {
-            json: jest.fn().mockResolvedValue({ id: mockId, title: mockTitle }),
-        };
-    });
-
-    it('should update a todo and return the updated todo', async () => {
-        // Arrange
-        (axios.put as jest.Mock).mockResolvedValue({ data: mockTodo });
-        const jsonSpy = jest.spyOn(require('next/server').NextResponse, 'json');
-        const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
-
-        // Act
-        await require('./route').PUT(mockReq);
-
-        // Assert
-        expect(mockReq.json).toHaveBeenCalled();
-        expect(axios.put).toHaveBeenCalledWith(
-            `http://localhost:3001/todos/${encodeURIComponent(mockId)}`,
-            { title: mockTitle }
-        );
-        expect(jsonSpy).toHaveBeenCalledWith(mockTodo);
-        expect(logSpy).toHaveBeenCalledWith('title:', mockTitle);
-
-        logSpy.mockRestore();
-        jsonSpy.mockRestore();
-    });
-
-    it('should return error response if axios.put throws', async () => {
-        // Arrange
-        (axios.put as jest.Mock).mockRejectedValue(new Error('API error'));
-        const jsonSpy = jest.spyOn(require('next/server').NextResponse, 'json');
-
-        // Act
-        await require('./route').PUT(mockReq);
-
-        // Assert
-        expect(jsonSpy).toHaveBeenCalledWith(
-            { error: 'Failed to update todo' },
-            { status: 500 }
-        );
-
-        jsonSpy.mockRestore();
-    });
-
-    it('should call axios.put with correct URL and payload', async () => {
-        // Arrange
-        (axios.put as jest.Mock).mockResolvedValue({ data: mockTodo });
-
-        // Act
-        await require('./route').PUT(mockReq);
-
-        // Assert
-        expect(axios.put).toHaveBeenCalledWith(
-            `http://localhost:3001/todos/${encodeURIComponent(mockId)}`,
-            { title: mockTitle }
-        );
-    });
-
-    it('should log the title', async () => {
-        // Arrange
-        (axios.put as jest.Mock).mockResolvedValue({ data: mockTodo });
-        const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
-
-        // Act
-        await require('./route').PUT(mockReq);
-
-        // Assert
-        expect(logSpy).toHaveBeenCalledWith('title:', mockTitle);
-
-        logSpy.mockRestore();
-    });
-});
-describe('PUT', () => {
-    const mockId = 'mock-id';
-    const mockTitle = 'mock-title';
-    const mockTodo = { id: mockId, title: mockTitle };
-
-    let mockReq: any;
+describe('Todos API route', () => {
+    const mockTodos = [{ id: '1', title: 'A' }, { id: '2', title: 'B' }];
+    const mockTodo = { id: '1', title: 'A' };
+    const mockId = 'uuid-1';
+    const mockTitle = 'New Todo';
+    const request = {
+        json: jest.fn(),
+    };
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockReq = {
-            json: jest.fn().mockResolvedValue({ id: mockId, title: mockTitle }),
-        };
     });
 
-    it('returns updated todo on success', async () => {
-        // Arrange
-        (axios.put as jest.Mock).mockResolvedValue({ data: mockTodo });
-        const jsonSpy = jest.spyOn(require('next/server').NextResponse, 'json');
-        const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    describe('GET', () => {
+        it('should return todos on success', async () => {
+            // Arrange
+            api.get.mockResolvedValue({ data: mockTodos });
+            NextResponse.json.mockImplementation((data, opts) => ({ data, opts }));
 
-        // Act
-        await require('./route').PUT(mockReq);
+            // Act
+            const response = await GET();
 
-        // Assert
-        expect(mockReq.json).toHaveBeenCalled();
-        expect(axios.put).toHaveBeenCalledWith(
-            `http://localhost:3001/todos/${encodeURIComponent(mockId)}`,
-            { title: mockTitle }
-        );
-        expect(jsonSpy).toHaveBeenCalledWith(mockTodo);
-        expect(logSpy).toHaveBeenCalledWith('title:', mockTitle);
+            // Assert
+            expect(api.get).toHaveBeenCalledWith('/todos');
+            expect(response).toEqual({ data: mockTodos, opts: undefined });
+        });
 
-        logSpy.mockRestore();
-        jsonSpy.mockRestore();
+        it('should return 500 error on failure', async () => {
+            // Arrange
+            api.get.mockRejectedValue(new Error('fail'));
+            NextResponse.json.mockImplementation((data, opts) => ({ data, opts }));
+
+            // Act
+            const response = await GET();
+
+            // Assert
+            expect(api.get).toHaveBeenCalledWith('/todos');
+            expect(response).toEqual({ data: { error: 'Failed to fetch todos' }, opts: { status: 500 } });
+        });
     });
 
-    it('returns error response if axios.put throws', async () => {
-        // Arrange
-        (axios.put as jest.Mock).mockRejectedValue(new Error('fail'));
-        const jsonSpy = jest.spyOn(require('next/server').NextResponse, 'json');
+    describe('POST', () => {
+        it('should create todo and return 201 on success', async () => {
+            // Arrange
+            request.json.mockResolvedValue({ title: mockTitle });
+            uuidv4.mockReturnValue(mockId);
+            api.post.mockResolvedValue({ data: mockTodo });
+            NextResponse.json.mockImplementation((data, opts) => ({ data, opts }));
 
-        // Act
-        await require('./route').PUT(mockReq);
+            // Act
+            const response = await POST(request);
 
-        // Assert
-        expect(jsonSpy).toHaveBeenCalledWith(
-            { error: 'Failed to update todo' },
-            { status: 500 }
-        );
+            // Assert
+            expect(request.json).toHaveBeenCalled();
+            expect(uuidv4).toHaveBeenCalled();
+            expect(api.post).toHaveBeenCalledWith('/todos', { id: mockId, title: mockTitle });
+            expect(response).toEqual({ data: mockTodo, opts: { status: 201 } });
+        });
 
-        jsonSpy.mockRestore();
+        it('should return 500 error on failure', async () => {
+            // Arrange
+            request.json.mockResolvedValue({ title: mockTitle });
+            uuidv4.mockReturnValue(mockId);
+            api.post.mockRejectedValue(new Error('fail'));
+            NextResponse.json.mockImplementation((data, opts) => ({ data, opts }));
+
+            // Act
+            const response = await POST(request);
+
+            // Assert
+            expect(request.json).toHaveBeenCalled();
+            expect(uuidv4).toHaveBeenCalled();
+            expect(api.post).toHaveBeenCalledWith('/todos', { id: mockId, title: mockTitle });
+            expect(response).toEqual({ data: { error: 'Failed to create todo' }, opts: { status: 500 } });
+        });
     });
 
-    it('calls axios.put with correct URL and payload', async () => {
-        // Arrange
-        (axios.put as jest.Mock).mockResolvedValue({ data: mockTodo });
+    describe('PUT', () => {
+        it('should update todo and return updated todo on success', async () => {
+            // Arrange
+            request.json.mockResolvedValue({ id: mockId, title: mockTitle });
+            axios.put.mockResolvedValue({ data: mockTodo });
+            NextResponse.json.mockImplementation((data, opts) => ({ data, opts }));
+            const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
 
-        // Act
-        await require('./route').PUT(mockReq);
+            // Act
+            const response = await PUT(request);
 
-        // Assert
-        expect(axios.put).toHaveBeenCalledWith(
-            `http://localhost:3001/todos/${encodeURIComponent(mockId)}`,
-            { title: mockTitle }
-        );
-    });
+            // Assert
+            expect(request.json).toHaveBeenCalled();
+            expect(consoleSpy).toHaveBeenCalledWith('title:', mockTitle);
+            expect(axios.put).toHaveBeenCalledWith(
+                `http://localhost:3001/todos/${encodeURIComponent(mockId)}`,
+                { title: mockTitle }
+            );
+            expect(response).toEqual({ data: mockTodo, opts: undefined });
 
-    it('logs the title', async () => {
-        // Arrange
-        (axios.put as jest.Mock).mockResolvedValue({ data: mockTodo });
-        const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+            consoleSpy.mockRestore();
+        });
 
-        // Act
-        await require('./route').PUT(mockReq);
+        it('should return 500 error on failure', async () => {
+            // Arrange
+            request.json.mockResolvedValue({ id: mockId, title: mockTitle });
+            axios.put.mockRejectedValue(new Error('fail'));
+            NextResponse.json.mockImplementation((data, opts) => ({ data, opts }));
+            const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
 
-        // Assert
-        expect(logSpy).toHaveBeenCalledWith('title:', mockTitle);
+            // Act
+            const response = await PUT(request);
 
-        logSpy.mockRestore();
-    });
-});
-describe('PUT', () => {
-    const mockId = 'unit-test-id';
-    const mockTitle = 'unit-test-title';
-    const mockTodo = { id: mockId, title: mockTitle };
+            // Assert
+            expect(request.json).toHaveBeenCalled();
+            expect(consoleSpy).toHaveBeenCalledWith('title:', mockTitle);
+            expect(axios.put).toHaveBeenCalledWith(
+                `http://localhost:3001/todos/${encodeURIComponent(mockId)}`,
+                { title: mockTitle }
+            );
+            expect(response).toEqual({ data: { error: 'Failed to update todo' }, opts: { status: 500 } });
 
-    let mockReq: any;
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-        mockReq = {
-            json: jest.fn().mockResolvedValue({ id: mockId, title: mockTitle }),
-        };
-    });
-
-    it('returns updated todo on success', async () => {
-        // Arrange
-        (axios.put as jest.Mock).mockResolvedValue({ data: mockTodo });
-        const jsonSpy = jest.spyOn(require('next/server').NextResponse, 'json');
-        const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
-
-        // Act
-        await require('./route').PUT(mockReq);
-
-        // Assert
-        expect(mockReq.json).toHaveBeenCalled();
-        expect(axios.put).toHaveBeenCalledWith(
-            `http://localhost:3001/todos/${encodeURIComponent(mockId)}`,
-            { title: mockTitle }
-        );
-        expect(jsonSpy).toHaveBeenCalledWith(mockTodo);
-        expect(logSpy).toHaveBeenCalledWith('title:', mockTitle);
-
-        logSpy.mockRestore();
-        jsonSpy.mockRestore();
-    });
-
-    it('returns error response if axios.put throws', async () => {
-        // Arrange
-        (axios.put as jest.Mock).mockRejectedValue(new Error('fail'));
-        const jsonSpy = jest.spyOn(require('next/server').NextResponse, 'json');
-
-        // Act
-        await require('./route').PUT(mockReq);
-
-        // Assert
-        expect(jsonSpy).toHaveBeenCalledWith(
-            { error: 'Failed to update todo' },
-            { status: 500 }
-        );
-
-        jsonSpy.mockRestore();
-    });
-
-    it('calls axios.put with correct URL and payload', async () => {
-        // Arrange
-        (axios.put as jest.Mock).mockResolvedValue({ data: mockTodo });
-
-        // Act
-        await require('./route').PUT(mockReq);
-
-        // Assert
-        expect(axios.put).toHaveBeenCalledWith(
-            `http://localhost:3001/todos/${encodeURIComponent(mockId)}`,
-            { title: mockTitle }
-        );
-    });
-
-    it('logs the title', async () => {
-        // Arrange
-        (axios.put as jest.Mock).mockResolvedValue({ data: mockTodo });
-        const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
-
-        // Act
-        await require('./route').PUT(mockReq);
-
-        // Assert
-        expect(logSpy).toHaveBeenCalledWith('title:', mockTitle);
-
-        logSpy.mockRestore();
+            consoleSpy.mockRestore();
+        });
     });
 });

@@ -1,12 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useTodos } from '@hooks/useTodos';
+import { useTodos } from '#hooks/useTodos';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 export default function TodosPage() {
     const { todos, loading, deleteTodo, fetchError } = useTodos();
+    console.log('TodosPage rendered with todos:', todos);
+    console.log('Loading state:', loading);
     const router = useRouter();
 
     const handleDelete = (id: string) => {

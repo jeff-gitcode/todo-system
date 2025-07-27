@@ -31,14 +31,17 @@
     "@eslint/eslintrc": "^3",
     "@storybook/addon-a11y": "9.0.18",
     "@storybook/addon-actions": "^9.0.8",
+    "@storybook/addon-coverage": "^2.0.0",
     "@storybook/addon-docs": "9.0.18",
     "@storybook/addon-essentials": "^8.6.14",
     "@storybook/addon-interactions": "^8.6.14",
     "@storybook/addon-links": "^9.0.18",
     "@storybook/addon-onboarding": "9.0.18",
     "@storybook/addon-vitest": "9.0.18",
+    "@storybook/nextjs": "^9.0.18",
     "@storybook/nextjs-vite": "^9.0.18",
     "@storybook/react": "^9.0.18",
+    "@storybook/test": "^8.6.14",
     "@tailwindcss/postcss": "^4.1.11",
     "@tanstack/react-query-devtools": "^5.83.0",
     "@testing-library/dom": "^10.4.0",
@@ -67,5 +70,16 @@
     "tw-animate-css": "^1.3.6",
     "typescript": "^5",
     "vitest": "^3.2.4"
+  },
+  "imports": {
+    "#hooks/useTodos": {
+      "storybook": "./app/hooks/useTodos.mock.ts",
+      "default": "./app/hooks/useTodos.ts"
+    },
+    "#*": [
+      "./*",
+      "./*.ts",
+      "./*.tsx"
+    ]
   }
 }

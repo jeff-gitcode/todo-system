@@ -6,42 +6,50 @@ export class TodoPage {
   readonly todoListTitle: Locator;
   readonly addTodoButton: Locator;
   readonly todoItems: Locator;
-  
+
   constructor(page: Page) {
     this.page = page;
     this.todoListTitle = page.getByText('TODO List');
     this.addTodoButton = page.getByRole('button', { name: 'Add TODO' });
     this.todoItems = page.locator('li');
   }
-  
+
   async goto() {
     await this.page.goto('/todos');
   }
-  
+
   async expectLoaded() {
     await expect(this.todoListTitle).toBeVisible();
     await expect(this.addTodoButton).toBeVisible();
   }
-  
+
   async getTodoItem(title: string) {
     return this.page.getByText(title).first();
   }
-  
+
+  async getListItem(title: string) {
+    return this.page.getByRole('listitem');
+  }
+
   async clickEditTodo(title: string) {
-    const todoRow = await this.getTodoItem(title).locator('..').locator('..');
-    await todoRow.getByRole('button', { name: 'Edit' }).click();
+    const listItem = await this.getListItem(title);
+    const todoRow = listItem.filter({ hasText: title });
+    await todoRow.getByRole('button').first().click();
   }
-  
+
   async clickDeleteTodo(title: string) {
-    const todoRow = await this.getTodoItem(title).locator('..').locator('..');
-    await todoRow.getByRole('button', { name: 'Delete' }).click();
+    const listItem = await this.getListItem(title);
+    const todoRow = listItem.filter({ hasText: title });
+    await todoRow.getByRole('button').nth(1).click();
   }
-  
+
   async expectTodoExists(title: string) {
-    await expect(this.getTodoItem(title)).toBeVisible();
+    const todoItem = await this.getTodoItem(title);
+    await expect(todoItem).toBeVisible();
   }
-  
+
   async expectTodoNotExists(title: string) {
-    await expect(this.getTodoItem(title)).toHaveCount(0);
+    const todoItem = await this.getTodoItem(title);
+    await expect(await todoItem.isVisible()).toBeFalsy();
   }
 }

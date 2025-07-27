@@ -133,4 +133,36 @@ This will start the mock API at [http://localhost:3001/todos](http://localhost:3
 yarn add -D jest jest-environment-jsdom @testing-library/react @testing-library/dom @testing-library/jest-dom ts-node @types/jest
 yarn create jest@latest
 ```
+
+### Playwright
+
+```bash
+yarn create playwright
+```
+
+## End-to-End Testing
+
+This project uses Playwright for end-to-end testing. To run the tests:
+
+### Prerequisites
+
+- Make sure json-server is running: `npm run json-server`
+- Build and start the application: `npm run dev`
+
+### Running Tests
+
+```bash
+# Run all E2E tests
+npm run test:e2e
+
+# Run with UI mode
+npm run test:e2e:ui
+
+# Run with debugging
+npm run test:e2e:debug
+
+# Run a specific test file
+npx playwright test e2e/todo-workflow.spec.ts
+```
+
 ## License

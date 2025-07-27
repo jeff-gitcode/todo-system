@@ -2,6 +2,7 @@ import type { Preview } from '@storybook/nextjs-vite'
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from 'react';
 
+import '../app/globals.css'; // Ensure global styles are applied
 
 const preview: Preview = {
   parameters: {

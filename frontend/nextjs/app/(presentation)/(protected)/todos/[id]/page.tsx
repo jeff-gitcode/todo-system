@@ -1,17 +1,20 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useTodos } from '@hooks/useTodos';
+import { useTodos } from '#hooks/useTodos';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 
 export default function TodoDetailPage() {
     const { createTodo, updateTodo, todos, loading } = useTodos();
+    console.log('Todos:', todos);
+    console.log('Loading:', loading);
     const params = useParams();
     const searchParams = useSearchParams();
     const router = useRouter();
     const id = typeof params?.id === 'string' ? params.id : Array.isArray(params?.id) ? params.id[0] : '';
+    console.log('ID:', params);
     const isNew = id === 'new';
 
     const [title, setTitle] = useState('');

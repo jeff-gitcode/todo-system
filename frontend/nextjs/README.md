@@ -28,6 +28,9 @@ npx prisma init
 npx prisma migrate dev --name init
 npx prisma generate
 
+# better auth
+yarn add better-auth better-auth/next-js better-auth/react
+
 npm run dev
 # or
 yarn dev

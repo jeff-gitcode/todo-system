@@ -3,11 +3,15 @@ import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { Todo } from '@domain/models';
 import { api } from '../apiClient';
+import { verifyToken } from '../auth/verifyToken';
 
 const BASE_API = 'http://localhost:3001/todos';
 const TODOS_ENDPOINT = '/todos';
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
+        const authResult = verifyToken(req);
+        if ('error' in authResult) return authResult;
+
         const res = await api.get<Todo[]>(TODOS_ENDPOINT);
         return NextResponse.json(res.data);
     } catch (error: unknown) {

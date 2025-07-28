@@ -1,8 +1,46 @@
-### Get all TODOs
-GET http://localhost:3000/api/todos
-Accept: application/json
+### 注册新用户
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
 
-###
+{
+  "email": "test@a.com",
+  "password": "123456"
+}
+
+### 用户登录，获取 token
+# @name login
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@a.com",
+  "password": "123456"
+}
+### Get User Profile Request:
+@token = {{login.response.body.*}}
+
+### 获取所有 TODO（需替换 {{token}} 为上一步返回的 token）
+GET http://localhost:3000/api/todos
+Authorization: Bearer {{token}}
+
+### 新建 TODO
+POST http://localhost:3000/api/todos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "New Todo from http file"
+}
+
+### 更新 TODO
+PUT http://localhost:3000/api/todos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": "1",
+  "title": "Updated Todo Title"
+}
 
 ### Create a new TODO
 POST http://localhost:3000/api/todos

@@ -34,7 +34,7 @@
         "app/hooks/*"
       ],
       "@lib/*": [
-        "app/lib/*"
+        "lib/*"
       ],
       "@public/*": [
         "app/public/*"

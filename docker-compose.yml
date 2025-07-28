@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine # Using a specific version is best practice
+    container_name: todo-postgres-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: tododb
+    ports:
+      - "5432:5432" # Exposes the database on localhost:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Persists data even if the container is removed
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U myuser -d tododb" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    driver: local

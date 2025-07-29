@@ -1,5 +1,6 @@
 'use client';
 
+import { useAuth } from "better-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -42,7 +43,7 @@ export default function SignInPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted">
       <Card className="w-full max-w-sm p-6">
         <CardHeader>
-          <CardTitle>Sign In</CardTitle>
+          <CardTitle>Sign In test</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -80,8 +81,8 @@ export default function SignInPage() {
               {loading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
-        </CardContent>   
-        </Card>
+        </CardContent>
+      </Card>
     </div>
   );
 }

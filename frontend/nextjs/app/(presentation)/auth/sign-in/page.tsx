@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { authClient } from "@lib/auth-client";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -18,20 +19,38 @@ export default function SignInPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Login failed");
-        setLoading(false);
-        return;
-      }
-      // 保存token到localStorage或cookie
-      localStorage.setItem("token", data.token);
-      router.push("/todos");
+      await authClient.signIn.email(
+        {
+          email,
+          password
+        },
+        {
+          onRequest: () => {
+            setLoading(true);
+          },
+          onSuccess: () => {
+            router.push("/todos");
+          },
+          onError: (ctx) => {
+            setLoading(false);
+            alert(ctx.error.message);
+          },
+        },
+      );
+      // const res = await fetch("/api/auth/login", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({ email, password }),
+      // });
+      // const data = await res.json();
+      // if (!res.ok) {
+      //   setError(data.error || "Login failed");
+      //   setLoading(false);
+      //   return;
+      // }
+      // // 保存token到localStorage或cookie
+      // localStorage.setItem("token", data.token);
+      // router.push("/todos");
     } catch (err) {
       setError("Network error");
     } finally {

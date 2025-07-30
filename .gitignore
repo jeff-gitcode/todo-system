@@ -17,7 +17,19 @@ frontend/nextjs/pnpm-debug.log*
 frontend/nextjs/.vscode/
 frontend/nextjs/.idea/
 
+# backend/java
+backend/java/target/
+backend/java/.idea/
+backend/java/.classpath
+backend/java/.project
+backend/java/.settings/
+backend/java/.vscode/
+backend/java/*.iml
+backend/java/.mvn/
+backend/java/logs/
+backend/java/*.log
+
 instructions/
 
 *storybook.log
-storybook-static
+storybook

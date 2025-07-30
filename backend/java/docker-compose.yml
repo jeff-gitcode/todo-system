@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: todo-postgres-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: todos
+    ports:
+      - "5432:5432" # Exposes the database on localhost:5432
+    volumes:
+      - db_data:/var/lib/postgresql/data # Persists data even if the container is removed
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d todos" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  app:
+    build: .
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: todos
+      DB_USER: postgres
+      DB_PASS: postgres
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+volumes:
+  db_data:
+    driver: local

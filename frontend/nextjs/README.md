@@ -31,6 +31,12 @@ npx prisma generate
 # better auth
 yarn add better-auth better-auth/next-js better-auth/react
 
+# Run a migration to create the corresponding tables
+npx prisma migrate reset
+npx @better-auth/cli generate
+npx prisma migrate dev --name add-auth-models
+
+
 npm run dev
 # or
 yarn dev

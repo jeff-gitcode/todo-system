@@ -3,8 +3,8 @@ export interface Todo {
     title: string;
 }
 
-export interface User {
-    id: string;
-    email: string;
-    password: string; // hashed
-}
+// export interface User {
+//     id: string;
+//     email: string;
+//     password: string; // hashed
+// }

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { Todo } from '@domain/models';
 import { api } from '../apiClient';
-import { verifyToken } from '../auth/verifyToken';
+import { verifyToken } from '../auth1/verifyToken';
 
 const BASE_API = 'http://localhost:3001/todos';
 const TODOS_ENDPOINT = '/todos';

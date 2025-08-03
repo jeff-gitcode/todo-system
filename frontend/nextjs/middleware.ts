@@ -1,15 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { getSessionCookie } from "better-auth/cookies";
 
 export async function middleware(request: NextRequest) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) {
-    return NextResponse.redirect(new URL("/auth/sign-in", request.url));
+  const sessionCookie = getSessionCookie(request);
+
+  const { pathname } = request.nextUrl;
+
+  // Redirect authenticated users away from login/signup pages
+  if (sessionCookie && ["/login", "/signup"].includes(pathname)) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
+
+  // Redirect unauthenticated users trying to access protected routes
+  if (!sessionCookie && pathname.startsWith("/dashboard")) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard", "/todos/:path*"], // 需要保护的路由
+  matcher: ["/dashboard", "/login", "/signup"], // Apply middleware to these routes
 };

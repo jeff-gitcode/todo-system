@@ -4,11 +4,6 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { authClient } from '@/lib/auth-client';
 
-interface User {
-    id: string;
-    email: string;
-    name?: string;
-}
 
 export default function Navigation() {
     const [isOpen, setIsOpen] = useState(false);
@@ -23,26 +18,20 @@ export default function Navigation() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16">
                     <div className="flex items-center">
-                        <Link href="/" className="text-xl font-bold">
+                        <Link href="/dashboard" className="text-xl font-bold">
                             Todo System
                         </Link>
                     </div>
 
                     {/* Desktop Menu */}
                     <div className="hidden md:flex items-center space-x-8">
-                        <Link href="/" className="hover:text-blue-200 transition-colors">
+                        {/* <Link href="/" className="hover:text-blue-200 transition-colors">
                             Home
-                        </Link>
+                        </Link> */}
                         {isAuthenticated && (
                             <>
                                 <Link href="/todos" className="hover:text-blue-200 transition-colors">
-                                    All Todos
-                                </Link>
-                                <Link href="/todos/add" className="hover:text-blue-200 transition-colors">
-                                    Add Todo
-                                </Link>
-                                <Link href="/completed" className="hover:text-blue-200 transition-colors">
-                                    Completed
+                                    Todos
                                 </Link>
                             </>
                         )}
@@ -110,12 +99,6 @@ export default function Navigation() {
                                 <>
                                     <Link href="/todos" className="block px-3 py-2 hover:bg-blue-700 rounded-md">
                                         All Todos
-                                    </Link>
-                                    <Link href="/todos/add" className="block px-3 py-2 hover:bg-blue-700 rounded-md">
-                                        Add Todo
-                                    </Link>
-                                    <Link href="/completed" className="block px-3 py-2 hover:bg-blue-700 rounded-md">
-                                        Completed
                                     </Link>
                                 </>
                             )}

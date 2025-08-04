@@ -1,6 +1,6 @@
 "use client";
 
-import LogoutButton from "@presentation/sign-out/page";
+import LogoutButton from "@presentation/(auth)/signout/page";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";

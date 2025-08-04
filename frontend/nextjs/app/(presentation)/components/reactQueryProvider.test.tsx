@@ -2,10 +2,6 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ReactQueryProviders } from './reactQueryProvider';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-
-// frontend/nextjs/app/(presentation)/components/reactQueryProvider.test.tsx
 
 // Arrange: Mock ReactQueryDevtools to avoid rendering actual devtools UI
 jest.mock('@tanstack/react-query-devtools', () => ({
@@ -42,7 +38,6 @@ describe('ReactQueryProviders', () => {
 
     it('provides a QueryClient instance', () => {
         // Arrange
-        let receivedClient: any = null;
         function TestComponent() {
             // Act
             // Try to access QueryClientProvider context

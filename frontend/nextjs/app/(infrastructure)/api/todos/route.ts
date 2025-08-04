@@ -10,6 +10,9 @@ const TODOS_ENDPOINT = '/todos';
 export async function GET(req: NextRequest) {
     try {
         const authResult = verifyToken(req);
+        if (typeof authResult === 'string') {
+            return NextResponse.json({ error: authResult }, { status: 401 });
+        }
         if ('error' in authResult) return authResult;
 
         const res = await api.get<Todo[]>(TODOS_ENDPOINT);

@@ -41,7 +41,7 @@ describe('Todos API route', () => {
             (NextResponse.json as jest.Mock).mockImplementation((data, opts) => ({ data, opts }));
 
             // Act
-            const response = await GET();
+            const response = await GET(request);
 
             // Assert
             expect(api.get).toHaveBeenCalledWith('/todos');

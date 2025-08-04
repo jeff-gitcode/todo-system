@@ -4,6 +4,7 @@ import LogoutButton from "@presentation/(auth)/signout/page";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import TodosPage from "../todos/page";
 
 export default function DashboardPage() {
     const { data: session, isPending } = authClient.useSession();
@@ -11,7 +12,7 @@ export default function DashboardPage() {
 
     useEffect(() => {
         if (!isPending && !session?.user) {
-            router.push("/sign-in");
+            router.push("/login");
         }
     }, [session, isPending, router]);
 
@@ -68,6 +69,7 @@ export default function DashboardPage() {
                         </div>
                     </div>
                 </div>
+                <TodosPage />
                 <LogoutButton />
             </div>
         </div>

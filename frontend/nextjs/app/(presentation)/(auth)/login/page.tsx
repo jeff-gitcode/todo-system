@@ -58,7 +58,7 @@ export default function SignInPage() {
                     <h1 className="text-2xl font-bold">Sign in to your account</h1>
                     <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                         Don&apos;t have an account?{" "}
-                        <Link href="/sign-up" className="font-medium hover:underline">
+                        <Link href="/signup" className="font-medium hover:underline">
                             Sign up
                         </Link>
                     </p>

@@ -70,7 +70,7 @@ export default function DashboardPage() {
                     </div>
                 </div>
                 <TodosPage />
-                <LogoutButton />
+                {/* <LogoutButton /> */}
             </div>
         </div>
     );

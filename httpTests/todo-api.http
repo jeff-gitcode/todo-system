@@ -1,20 +1,21 @@
 ### 注册新用户
-POST http://localhost:3000/api/auth/register
+POST http://localhost:3000/api/authExternal/register
 Content-Type: application/json
 
 {
-  "email": "test@a.com",
-  "password": "123456"
+  "email": "test2@test.com",
+  "password": "12345678",
+  "name": "Test User"
 }
 
 ### 用户登录，获取 token
 # @name login
-POST http://localhost:3000/api/auth/login
+POST http://localhost:3000/api/authExternal/login
 Content-Type: application/json
 
 {
-  "email": "test@a.com",
-  "password": "123456"
+  "email": "test1@test.com",
+  "password": "Test01@test"
 }
 ### Get User Profile Request:
 @token = {{login.response.body.*}}

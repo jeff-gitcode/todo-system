@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ReactQueryProviders } from "@presentation/components/reactQueryProvider";
 import Layout from "@/components/Layout";
+import { Toaster } from "sonner";
 
 import "./globals.css";
 
@@ -33,6 +34,7 @@ export default function RootLayout({
         <ReactQueryProviders>
           <Layout>
             {children}
+            <Toaster />
           </Layout>
         </ReactQueryProviders>
       </body>

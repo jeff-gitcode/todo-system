@@ -5,6 +5,7 @@ import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
 
 export default function SignOutPage() {
     const router = useRouter();
@@ -13,11 +14,26 @@ export default function SignOutPage() {
     async function handleSignOut() {
         await authClient.signOut({
             fetchOptions: {
-                onSuccess: () => {
-                    router.push("/login"); // redirect to login page
-                },
                 onRequest: (ctx) => {
                     setLoading(true);
+                    toast.loading("Signing out...", {
+                        description: "Please wait while we sign you out.",
+                    });
+                },
+                onSuccess: () => {
+                    toast.dismiss();
+                    toast.success("Signed out successfully!", {
+                        description: "You have been signed out of your account.",
+                        duration: 2000,
+                    });
+                    router.push("/login"); // redirect to login page
+                },
+                onError: (ctx) => {
+                    toast.dismiss();
+                    setLoading(false);
+                    toast.error("Sign out failed", {
+                        description: "There was an error signing you out. Please try again.",
+                    });
                 },
                 onResponse: (ctx) => {
                     setLoading(false);

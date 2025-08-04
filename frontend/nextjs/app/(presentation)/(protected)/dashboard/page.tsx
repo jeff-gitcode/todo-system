@@ -5,6 +5,7 @@ import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import TodosPage from "../todos/page";
+import { toast } from "sonner";
 
 export default function DashboardPage() {
     const { data: session, isPending } = authClient.useSession();
@@ -15,6 +16,16 @@ export default function DashboardPage() {
             router.push("/login");
         }
     }, [session, isPending, router]);
+
+    useEffect(() => {
+        // Show welcome toast when user successfully logs in
+        if (session?.user && !isPending) {
+            toast.success("Welcome back!", {
+                description: `Good to see you again, ${session.user.name || session.user.email}`,
+                duration: 3000,
+            });
+        }
+    }, [session?.user, isPending]);
 
     if (isPending) {
         return (

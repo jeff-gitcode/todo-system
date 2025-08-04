@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
 
 export default function SignInPage() {
     const [error, setError] = useState<string | null>(null);
@@ -24,24 +25,30 @@ export default function SignInPage() {
             email: formData.get("email") as string,
             password: formData.get("password") as string,
             callbackURL: "/dashboard",
-            /**
-             * remember the user session after the browser is closed.
-             * @default true
-             */
             rememberMe: false,
         },
             {
                 onRequest: (ctx) => {
                     setLoading(true);
+                    toast.loading("Signing in...", {
+                        description: "Please wait while we sign you in.",
+                    });
                 },
                 onSuccess: (ctx) => {
-                    // redirect to the dashboard
-                    //alert("Logged in successfully");
+                    toast.dismiss();
+                    toast.success("Success!", {
+                        description: "You have been signed in successfully.",
+                        duration: 2000,
+                    });
+                    router.push("/dashboard");
                 },
                 onError: (ctx) => {
-                    // display the error message
+                    toast.dismiss();
                     setError(ctx.error.message);
                     setLoading(false);
+                    toast.error("Sign in failed", {
+                        description: ctx.error.message,
+                    });
                 },
             }
         );

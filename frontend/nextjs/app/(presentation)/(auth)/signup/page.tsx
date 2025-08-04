@@ -7,6 +7,7 @@ import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
 
 export default function SignUpPage() {
     const [error, setError] = useState<string | null>(null);
@@ -28,15 +29,25 @@ export default function SignUpPage() {
             {
                 onRequest: (ctx) => {
                     setLoading(true);
+                    toast.loading("Creating account...", {
+                        description: "Please wait while we create your account.",
+                    });
                 },
                 onSuccess: (ctx) => {
-                    // redirect to the dashboard
+                    toast.dismiss();
+                    toast.success("Account created!", {
+                        description: "Welcome! Your account has been created successfully.",
+                        duration: 2000,
+                    });
                     router.push("/dashboard");
                 },
                 onError: (ctx) => {
-                    // display the error message
+                    toast.dismiss();
                     setError(ctx.error.message);
                     setLoading(false);
+                    toast.error("Sign up failed", {
+                        description: ctx.error.message,
+                    });
                 },
             }
         );

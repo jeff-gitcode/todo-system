@@ -2,9 +2,21 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { authClient } from '@/lib/auth-client';
+
+interface User {
+    id: string;
+    email: string;
+    name?: string;
+}
 
 export default function Navigation() {
     const [isOpen, setIsOpen] = useState(false);
+
+    // Use the auth client to get session data
+    const { data: session, isPending } = authClient.useSession();
+    const isAuthenticated = !!session?.user;
+    const user = session?.user;
 
     return (
         <nav className="bg-blue-600 text-white shadow-lg">
@@ -21,15 +33,53 @@ export default function Navigation() {
                         <Link href="/" className="hover:text-blue-200 transition-colors">
                             Home
                         </Link>
-                        <Link href="/todos" className="hover:text-blue-200 transition-colors">
-                            All Todos
-                        </Link>
-                        <Link href="/todos/add" className="hover:text-blue-200 transition-colors">
-                            Add Todo
-                        </Link>
-                        <Link href="/completed" className="hover:text-blue-200 transition-colors">
-                            Completed
-                        </Link>
+                        {isAuthenticated && (
+                            <>
+                                <Link href="/todos" className="hover:text-blue-200 transition-colors">
+                                    All Todos
+                                </Link>
+                                <Link href="/todos/add" className="hover:text-blue-200 transition-colors">
+                                    Add Todo
+                                </Link>
+                                <Link href="/completed" className="hover:text-blue-200 transition-colors">
+                                    Completed
+                                </Link>
+                            </>
+                        )}
+
+                        {/* Authentication buttons */}
+                        <div className="flex items-center space-x-4">
+                            {isPending ? (
+                                <div className="text-blue-200">Loading...</div>
+                            ) : isAuthenticated ? (
+                                <div className="flex items-center space-x-4">
+                                    <span className="text-blue-200">
+                                        Welcome, {user?.name || user?.email}
+                                    </span>
+                                    <Link
+                                        href="/signout"
+                                        className="bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-md transition-colors"
+                                    >
+                                        Logout
+                                    </Link>
+                                </div>
+                            ) : (
+                                <div className="flex items-center space-x-2">
+                                    <Link
+                                        href="/login"
+                                        className="bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-md transition-colors"
+                                    >
+                                        Login
+                                    </Link>
+                                    <Link
+                                        href="/signup"
+                                        className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-md transition-colors"
+                                    >
+                                        Sign Up
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Mobile menu button */}
@@ -56,15 +106,56 @@ export default function Navigation() {
                             <Link href="/" className="block px-3 py-2 hover:bg-blue-700 rounded-md">
                                 Home
                             </Link>
-                            <Link href="/todos" className="block px-3 py-2 hover:bg-blue-700 rounded-md">
-                                All Todos
-                            </Link>
-                            <Link href="/todos/add" className="block px-3 py-2 hover:bg-blue-700 rounded-md">
-                                Add Todo
-                            </Link>
-                            <Link href="/completed" className="block px-3 py-2 hover:bg-blue-700 rounded-md">
-                                Completed
-                            </Link>
+                            {isAuthenticated && (
+                                <>
+                                    <Link href="/todos" className="block px-3 py-2 hover:bg-blue-700 rounded-md">
+                                        All Todos
+                                    </Link>
+                                    <Link href="/todos/add" className="block px-3 py-2 hover:bg-blue-700 rounded-md">
+                                        Add Todo
+                                    </Link>
+                                    <Link href="/completed" className="block px-3 py-2 hover:bg-blue-700 rounded-md">
+                                        Completed
+                                    </Link>
+                                </>
+                            )}
+
+                            {/* Mobile Authentication Section */}
+                            <div className="border-t border-blue-500 pt-2 mt-2">
+                                {isPending ? (
+                                    <div className="px-3 py-2 text-blue-200">Loading...</div>
+                                ) : isAuthenticated ? (
+                                    <div className="space-y-2">
+                                        <div className="px-3 py-2 text-blue-200">
+                                            Welcome, {user?.name || user?.email}
+                                        </div>
+                                        <Link
+                                            href="/signout"
+                                            className="block w-full text-left px-3 py-2 hover:bg-blue-700 rounded-md"
+                                            onClick={() => setIsOpen(false)}
+                                        >
+                                            Logout
+                                        </Link>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        <Link
+                                            href="/login"
+                                            className="block w-full text-left px-3 py-2 hover:bg-blue-700 rounded-md"
+                                            onClick={() => setIsOpen(false)}
+                                        >
+                                            Login
+                                        </Link>
+                                        <Link
+                                            href="/signup"
+                                            className="block w-full text-left px-3 py-2 hover:bg-green-700 rounded-md bg-green-600"
+                                            onClick={() => setIsOpen(false)}
+                                        >
+                                            Sign Up
+                                        </Link>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}

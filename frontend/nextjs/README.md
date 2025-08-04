@@ -16,6 +16,23 @@ npx tailwindcss init -p
 # shadcn/ui
 npx shadcn@latest init
 npx shadcn@latest add button
+# For navigation menu/navbar components:
+npx shadcn@latest add navigation-menu
+
+# For breadcrumb navigation:
+npx shadcn@latest add breadcrumb
+
+# For sidebar navigation:
+npx shadcn@latest add sidebar
+
+# For command menu/search:
+npx shadcn@latest add command
+
+# For dropdown menu (often used in navigation):
+npx shadcn@latest add dropdown-menu
+
+# For sheet (mobile navigation drawer):
+npx shadcn@latest add sheet
 
 # Prisma & Postgres
 npm install @prisma/client prisma pg

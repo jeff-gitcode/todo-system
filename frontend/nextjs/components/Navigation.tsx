@@ -11,20 +11,11 @@ import {
     SheetTitle,
     SheetTrigger,
 } from '@/components/ui/sheet';
-import {
-    NavigationMenu,
-    NavigationMenuContent,
-    NavigationMenuItem,
-    NavigationMenuLink,
-    NavigationMenuList,
-    NavigationMenuTrigger,
-} from '@/components/ui/navigation-menu';
-import { Menu, X } from 'lucide-react';
+import { Menu } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function Navigation() {
     const [isOpen, setIsOpen] = useState(false);
-
-    // Use the auth client to get session data
     const { data: session, isPending } = authClient.useSession();
     const isAuthenticated = !!session?.user;
     const user = session?.user;
@@ -33,114 +24,106 @@ export default function Navigation() {
         try {
             await authClient.signOut({
                 fetchOptions: {
+                    onRequest: () => {
+                        toast.loading("Signing out...");
+                    },
                     onSuccess: () => {
-                        // Optionally redirect to home page after logout
+                        toast.dismiss();
+                        toast.success("Signed out successfully!");
                         window.location.href = '/';
+                    },
+                    onError: () => {
+                        toast.dismiss();
+                        toast.error("Failed to sign out");
                     }
                 }
             });
         } catch (error) {
             console.error('Logout failed:', error);
+            toast.error("Logout failed");
         }
     };
 
     return (
-        <nav className="bg-blue-600 text-white shadow-lg">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-16">
-                    <div className="flex items-center">
-                        <Link href="/dashboard" className="text-xl font-bold hover:text-blue-200 transition-colors">
-                            Todo System
-                        </Link>
-                    </div>
+        <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="container flex h-14 items-center">
+                <div className="mr-4 flex">
+                    <Link href="/" className="mr-6 flex items-center space-x-2">
+                        <span className="font-bold">Todo System</span>
+                    </Link>
+                </div>
 
-                    {/* Desktop Menu */}
-                    <div className="hidden md:flex items-center space-x-8">
-                        <NavigationMenu>
-                            <NavigationMenuList>
-                                {isAuthenticated && (
-                                    <NavigationMenuItem>
-                                        <NavigationMenuLink asChild>
-                                            <Link href="/todos" className="text-white hover:text-blue-200 transition-colors px-3 py-2">
-                                                Todos
-                                            </Link>
-                                        </NavigationMenuLink>
-                                    </NavigationMenuItem>
-                                )}
-                            </NavigationMenuList>
-                        </NavigationMenu>
+                {/* Desktop Navigation */}
+                <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+                    <nav className="flex items-center space-x-6 text-sm font-medium">
+                        {isAuthenticated && (
+                            <Link 
+                                href="/todos" 
+                                className="transition-colors hover:text-foreground/80 text-foreground/60"
+                            >
+                                Todos
+                            </Link>
+                        )}
+                    </nav>
 
-                        {/* Authentication buttons */}
-                        <div className="flex items-center space-x-4">
-                            {isPending ? (
-                                <div className="text-blue-200">Loading...</div>
-                            ) : isAuthenticated ? (
-                                <div className="flex items-center space-x-4">
-                                    <span className="text-blue-200">
-                                        Welcome, {user?.name || user?.email}
-                                    </span>
-                                    <Button
-                                        onClick={handleLogout}
-                                        variant="secondary"
-                                        className="bg-blue-700 hover:bg-blue-800 text-white"
-                                    >
-                                        Logout
-                                    </Button>
-                                </div>
-                            ) : (
-                                <div className="flex items-center space-x-2">
-                                    <Button asChild variant="secondary" className="bg-blue-700 hover:bg-blue-800 text-white">
-                                        <Link href="/login">
-                                            Login
-                                        </Link>
-                                    </Button>
-                                    <Button asChild className="bg-green-600 hover:bg-green-700 text-white">
-                                        <Link href="/signup">
-                                            Sign Up
-                                        </Link>
-                                    </Button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                    <div className="flex items-center space-x-2">
+                        {isPending ? (
+                            <div className="text-sm text-muted-foreground">Loading...</div>
+                        ) : isAuthenticated ? (
+                            <>
+                                <span className="text-sm text-muted-foreground hidden sm:inline">
+                                    {user?.name || user?.email}
+                                </span>
+                                <Button onClick={handleLogout} variant="ghost" size="sm">
+                                    Logout
+                                </Button>
+                            </>
+                        ) : (
+                            <>
+                                <Button asChild variant="ghost" size="sm">
+                                    <Link href="/login">Login</Link>
+                                </Button>
+                                <Button asChild size="sm">
+                                    <Link href="/signup">Sign Up</Link>
+                                </Button>
+                            </>
+                        )}
 
-                    {/* Mobile menu */}
-                    <div className="md:hidden flex items-center">
+                        {/* Mobile Menu */}
                         <Sheet open={isOpen} onOpenChange={setIsOpen}>
                             <SheetTrigger asChild>
-                                <Button variant="ghost" size="icon" className="text-white hover:text-blue-200 hover:bg-blue-700">
-                                    <Menu className="h-6 w-6" />
-                                    <span className="sr-only">Open menu</span>
+                                <Button variant="ghost" size="icon" className="md:hidden">
+                                    <Menu className="h-5 w-5" />
+                                    <span className="sr-only">Toggle menu</span>
                                 </Button>
                             </SheetTrigger>
-                            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                            <SheetContent side="right">
                                 <SheetHeader>
                                     <SheetTitle>Todo System</SheetTitle>
                                 </SheetHeader>
-                                <div className="mt-6 space-y-4">
-                                    <div className="space-y-2">
-                                        <Button asChild variant="ghost" className="w-full justify-start">
-                                            <Link href="/" onClick={() => setIsOpen(false)}>
-                                                Home
-                                            </Link>
-                                        </Button>
-                                        {isAuthenticated && (
-                                            <Button asChild variant="ghost" className="w-full justify-start">
-                                                <Link href="/todos" onClick={() => setIsOpen(false)}>
-                                                    All Todos
-                                                </Link>
-                                            </Button>
-                                        )}
-                                    </div>
-
-                                    {/* Mobile Authentication Section */}
-                                    <div className="border-t pt-4 mt-4">
-                                        {isPending ? (
-                                            <div className="text-muted-foreground">Loading...</div>
-                                        ) : isAuthenticated ? (
-                                            <div className="space-y-3">
+                                <div className="grid gap-4 py-6">
+                                    <Link 
+                                        href="/" 
+                                        className="flex items-center text-sm font-medium"
+                                        onClick={() => setIsOpen(false)}
+                                    >
+                                        Home
+                                    </Link>
+                                    {isAuthenticated && (
+                                        <Link 
+                                            href="/todos" 
+                                            className="flex items-center text-sm font-medium"
+                                            onClick={() => setIsOpen(false)}
+                                        >
+                                            Todos
+                                        </Link>
+                                    )}
+                                    
+                                    <div className="border-t pt-4">
+                                        {isAuthenticated ? (
+                                            <div className="space-y-2">
                                                 <div className="text-sm text-muted-foreground">
-                                                    Welcome, {user?.name || user?.email}
+                                                    {user?.name || user?.email}
                                                 </div>
                                                 <Button
                                                     onClick={() => {
@@ -148,19 +131,19 @@ export default function Navigation() {
                                                         setIsOpen(false);
                                                     }}
                                                     variant="outline"
-                                                    className="w-full"
+                                                    className="w-full justify-start"
                                                 >
                                                     Logout
                                                 </Button>
                                             </div>
                                         ) : (
                                             <div className="space-y-2">
-                                                <Button asChild variant="outline" className="w-full">
+                                                <Button asChild variant="outline" className="w-full justify-start">
                                                     <Link href="/login" onClick={() => setIsOpen(false)}>
                                                         Login
                                                     </Link>
                                                 </Button>
-                                                <Button asChild className="w-full">
+                                                <Button asChild className="w-full justify-start">
                                                     <Link href="/signup" onClick={() => setIsOpen(false)}>
                                                         Sign Up
                                                     </Link>

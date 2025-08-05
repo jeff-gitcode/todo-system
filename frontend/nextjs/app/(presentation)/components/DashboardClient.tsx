@@ -1,4 +1,3 @@
-// app/(presentation)/(protected)/dashboard/DashboardClient.tsx
 "use client";
 
 import { useEffect } from 'react';

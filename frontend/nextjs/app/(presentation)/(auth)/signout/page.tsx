@@ -1,46 +1,14 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 
-import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
+import { useSignOut } from "./useSignOut";
+import { useRouter } from "next/navigation";
 
 export default function SignOutPage() {
+    const { signOut, loading } = useSignOut();
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
-
-    async function handleSignOut() {
-        await authClient.signOut({
-            fetchOptions: {
-                onRequest: (ctx) => {
-                    setLoading(true);
-                    toast.loading("Signing out...", {
-                        description: "Please wait while we sign you out.",
-                    });
-                },
-                onSuccess: () => {
-                    toast.dismiss();
-                    toast.success("Signed out successfully!", {
-                        description: "You have been signed out of your account.",
-                        duration: 2000,
-                    });
-                    router.push("/login"); // redirect to login page
-                },
-                onError: (ctx) => {
-                    toast.dismiss();
-                    setLoading(false);
-                    toast.error("Sign out failed", {
-                        description: "There was an error signing you out. Please try again.",
-                    });
-                },
-                onResponse: (ctx) => {
-                    setLoading(false);
-                },
-            },
-        });
-    }
 
     return (
         <div className="min-h-screen grid place-items-center p-8">
@@ -55,7 +23,7 @@ export default function SignOutPage() {
                 <CardContent>
                     <div className="flex flex-col gap-4">
                         <Button
-                            onClick={handleSignOut}
+                            onClick={signOut}
                             disabled={loading}
                             variant="destructive"
                             className="w-full"

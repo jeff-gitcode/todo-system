@@ -1,18 +1,13 @@
 "use client";
 
-import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
+import { useSignIn } from "./useSignIn";
 
 export default function SignInPage() {
-    const [error, setError] = useState<string | null>(null);
-    const router = useRouter();
-    const [loading, setLoading] = useState(false);
+    const { signIn, loading, error, setError } = useSignIn();
 
     async function handleSignIn(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -21,36 +16,9 @@ export default function SignInPage() {
         const form = e.currentTarget;
         const formData = new FormData(form);
 
-        const data = await authClient.signIn.email({
-            email: formData.get("email") as string,
-            password: formData.get("password") as string,
-            callbackURL: "/dashboard",
-            rememberMe: false,
-        },
-            {
-                onRequest: (ctx) => {
-                    setLoading(true);
-                    toast.loading("Signing in...", {
-                        description: "Please wait while we sign you in.",
-                    });
-                },
-                onSuccess: (ctx) => {
-                    toast.dismiss();
-                    toast.success("Success!", {
-                        description: "You have been signed in successfully.",
-                        duration: 2000,
-                    });
-                    router.push("/dashboard");
-                },
-                onError: (ctx) => {
-                    toast.dismiss();
-                    setError(ctx.error.message);
-                    setLoading(false);
-                    toast.error("Sign in failed", {
-                        description: ctx.error.message,
-                    });
-                },
-            }
+        await signIn(
+            formData.get("email") as string,
+            formData.get("password") as string
         );
     }
 

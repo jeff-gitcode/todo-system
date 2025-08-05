@@ -3,7 +3,7 @@
 
 import { useEffect } from 'react';
 import { toast } from 'sonner';
-import TodosPage from '../(protected)/todos/page';
+import TodosPage from '@presentation/(protected)/dashboard/todos/page';
 
 interface DashboardClientProps {
     user: {

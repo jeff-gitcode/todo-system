@@ -39,7 +39,7 @@ export default function TodosPage() {
                     <li key={todo.id} className="flex items-center justify-between border-b pb-2">
                         <span
                             className="cursor-pointer hover:underline"
-                            onClick={() => router.push(`/todos/${todo.id}`)}
+                            onClick={() => router.push(`/dashboard/todos/${todo.id}`)}
                         >
                             {todo.id}  {todo.title}
                         </span>
@@ -47,7 +47,7 @@ export default function TodosPage() {
                             <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => router.push(`/todos/${todo.id}?edit=1`)}
+                                onClick={() => router.push(`/dashboard/todos/${todo.id}?edit=1`)}
                             >
                                 Edit
                             </Button>
@@ -60,9 +60,10 @@ export default function TodosPage() {
                             </Button>
                         </div>
                     </li>
-                ))}
-            </ul>
-            <Button className="w-full" onClick={() => router.push(`/todos/new?edit=1`)}>Add TODO</Button>
-        </Card>
+                ))
+                }
+            </ul >
+            <Button className="w-full" onClick={() => router.push(`/dashboard/todos/new?edit=1`)}>Add TODO</Button>
+        </Card >
     );
 }

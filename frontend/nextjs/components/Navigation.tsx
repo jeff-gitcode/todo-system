@@ -57,8 +57,8 @@ export default function Navigation() {
                 <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
                     <nav className="flex items-center space-x-6 text-sm font-medium">
                         {isAuthenticated && (
-                            <Link 
-                                href="/todos" 
+                            <Link
+                                href="/dashboard/todos"
                                 className="transition-colors hover:text-foreground/80 text-foreground/60"
                             >
                                 Todos
@@ -102,23 +102,23 @@ export default function Navigation() {
                                     <SheetTitle>Todo System</SheetTitle>
                                 </SheetHeader>
                                 <div className="grid gap-4 py-6">
-                                    <Link 
-                                        href="/" 
+                                    <Link
+                                        href="/"
                                         className="flex items-center text-sm font-medium"
                                         onClick={() => setIsOpen(false)}
                                     >
                                         Home
                                     </Link>
                                     {isAuthenticated && (
-                                        <Link 
-                                            href="/todos" 
+                                        <Link
+                                            href="/todos"
                                             className="flex items-center text-sm font-medium"
                                             onClick={() => setIsOpen(false)}
                                         >
                                             Todos
                                         </Link>
                                     )}
-                                    
+
                                     <div className="border-t pt-4">
                                         {isAuthenticated ? (
                                             <div className="space-y-2">

@@ -18,7 +18,7 @@ export class TodoDetailPage {
   }
 
   async goto(id: string) {
-    await this.page.goto(`/todos/${id}`);
+    await this.page.goto(`/dashboard/todos/${id}`);
   }
 
   async expectLoaded() {

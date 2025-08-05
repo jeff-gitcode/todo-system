@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { todoUseCase } from '#app/application/todoUseCase.js';
+import { todoUseCase } from '#app/application/frontend/todoUseCase';
 import { Todo } from '@domain/models';
 
 export function useTodos() {

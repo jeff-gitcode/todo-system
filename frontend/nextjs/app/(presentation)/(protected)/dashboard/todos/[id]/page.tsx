@@ -39,7 +39,7 @@ export default function TodoDetailPage() {
             createTodo.mutate(title, {
                 onSuccess: (newTodo) => {
                     setTitle('');
-                    router.push(`/todos/${newTodo.id}`);
+                    router.push(`/dashboard/todos/${newTodo.id}`);
                 }
             });
         }
@@ -51,7 +51,7 @@ export default function TodoDetailPage() {
             updateTodo.mutate({ id: todo.id, title: editTitle }, {
                 onSuccess: () => {
                     setIsEdit(false);
-                    router.push(`/todos/${todo.id}`);
+                    router.push(`/dashboard/todos/${todo.id}`);
                 }
             });
         }
@@ -128,7 +128,7 @@ export default function TodoDetailPage() {
             )}
             <Button
                 variant="outline"
-                onClick={() => router.push('/todos')}
+                onClick={() => router.push('/dashboard/todos')}
             >
                 Back to List
             </Button>

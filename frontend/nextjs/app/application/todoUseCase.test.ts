@@ -1,9 +1,8 @@
 import { todoUseCase } from './todoUseCase';
-import { todoRepository } from '@infrastructure/todoRepository';
 
 
-jest.mock('@infrastructure/todoRepository', () => ({
-    todoRepository: {
+jest.mock('@infrastructure/services/todoService', () => ({
+    todoService: {
         getAll: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
@@ -11,70 +10,38 @@ jest.mock('@infrastructure/todoRepository', () => ({
     },
 }));
 
+// Import the mocked todoService for assertions
+import { todoService } from '@infrastructure/services/todoService';
 
 describe('todoUseCase', () => {
-    const mockTodos = [{ id: '1', title: 'A' }, { id: '2', title: 'B' }];
-    const mockTodo = { id: '1', title: 'A' };
-    const mockId = '1';
-    const mockData = { title: 'New Todo' };
-
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    describe('getAll', () => {
-        it('should call todoRepository.getAll and return todos', async () => {
-            // Arrange
-            (todoRepository.getAll as jest.Mock).mockResolvedValue(mockTodos);
-
-            // Act
-            const result = await todoUseCase.getAll();
-
-            // Assert
-            expect(todoRepository.getAll).toHaveBeenCalled();
-            expect(result).toBe(mockTodos);
-        });
+    it('should call getAll from todoService', async () => {
+        (todoUseCase.getAll as jest.Mock).mockReturnValue(Promise.resolve([{ id: '1', title: 'Test', completed: false }]));
+        const result = await todoUseCase.getAll();
+        expect(todoService.getAll).toHaveBeenCalled();
+        expect(result).toEqual([{ id: '1', title: 'Test', completed: false }]);
     });
 
-    describe('create', () => {
-        it('should call todoRepository.create with data and return todo', async () => {
-            // Arrange
-            (todoRepository.create as jest.Mock).mockResolvedValue(mockTodo);
-
-            // Act
-            const result = await todoUseCase.create(mockData.title);
-
-            // Assert
-            expect(todoRepository.create).toHaveBeenCalledWith(mockData.title);
-            expect(result).toBe(mockTodo);
-        });
+    it('should call create from todoService', async () => {
+        (todoService.create as jest.Mock).mockResolvedValue({ id: '1', title: 'New Todo', completed: false });
+        const result = await todoUseCase.create('New Todo');
+        expect(todoService.create).toHaveBeenCalledWith('New Todo');
+        expect(result).toEqual({ id: '1', title: 'New Todo', completed: false });
     });
 
-    describe('update', () => {
-        it('should call todoRepository.update with id and data and return updated todo', async () => {
-            // Arrange
-            (todoRepository.update as jest.Mock).mockResolvedValue(mockTodo);
-
-            // Act
-            const result = await todoUseCase.update(mockId, mockData.title);
-
-            // Assert
-            expect(todoRepository.update).toHaveBeenCalledWith(mockId, mockData.title);
-            expect(result).toBe(mockTodo);
-        });
+    it('should call update from todoService', async () => {
+        (todoService.update as jest.Mock).mockResolvedValue({ id: '1', title: 'Updated Todo', completed: false });
+        const result = await todoUseCase.update('1', 'Updated Todo');
+        expect(todoService.update).toHaveBeenCalledWith('1', 'Updated Todo');
+        expect(result).toEqual({ id: '1', title: 'Updated Todo', completed: false });
     });
 
-    describe('delete', () => {
-        it('should call todoRepository.delete with id and return result', async () => {
-            // Arrange
-            (todoRepository.delete as jest.Mock).mockResolvedValue(true);
-
-            // Act
-            const result = await todoUseCase.delete(mockId);
-
-            // Assert
-            expect(todoRepository.delete).toHaveBeenCalledWith(mockId);
-            expect(result).toBe(true);
-        });
+    it('should call delete from todoService', async () => {
+        (todoService.delete as jest.Mock).mockResolvedValue(undefined);
+        await todoUseCase.delete('1');
+        expect(todoService.delete).toHaveBeenCalledWith('1');
     });
 });

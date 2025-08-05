@@ -67,7 +67,7 @@ describe('TodosPage', () => {
         fireEvent.click(screen.getByText(/First/));
 
         // Assert
-        expect(mockPush).toHaveBeenCalledWith('/todos/1');
+        expect(mockPush).toHaveBeenCalledWith('/dashboard/todos/1');
     });
 
     it('navigates to edit page on Edit button click', () => {
@@ -77,7 +77,7 @@ describe('TodosPage', () => {
         fireEvent.click(editButtons[0]);
 
         // Assert
-        expect(mockPush).toHaveBeenCalledWith('/todos/1?edit=1');
+        expect(mockPush).toHaveBeenCalledWith('/dashboard/todos/1?edit=1');
     });
 
     it('calls deleteTodo.mutate and refreshes on Delete button click', () => {
@@ -102,6 +102,6 @@ describe('TodosPage', () => {
         fireEvent.click(screen.getByText('Add TODO'));
 
         // Assert
-        expect(mockPush).toHaveBeenCalledWith('/todos/new?edit=1');
+        expect(mockPush).toHaveBeenCalledWith('/dashboard/todos/new?edit=1');
     });
 });

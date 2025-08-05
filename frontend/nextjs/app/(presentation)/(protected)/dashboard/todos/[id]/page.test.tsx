@@ -74,7 +74,7 @@ describe('TodoDetailPage', () => {
 
         // Assert
         expect(mockCreateMutate).toHaveBeenCalledWith('New Task', expect.objectContaining({ onSuccess: expect.any(Function) }));
-        expect(mockPush).toHaveBeenCalledWith('/todos/3');
+        expect(mockPush).toHaveBeenCalledWith('/dashboard/todos/3');
     });
 
     it('renders not found if todo does not exist', () => {
@@ -126,7 +126,7 @@ describe('TodoDetailPage', () => {
             { id: '1', title: 'Updated Title' },
             expect.objectContaining({ onSuccess: expect.any(Function) })
         );
-        expect(mockPush).toHaveBeenCalledWith('/todos/1');
+        expect(mockPush).toHaveBeenCalledWith('/dashboard/todos/1');
     });
 
     it('does not call updateTodo.mutate if editTitle is empty', () => {
@@ -167,7 +167,7 @@ describe('TodoDetailPage', () => {
         fireEvent.click(screen.getByText('Back to List'));
 
         // Assert
-        expect(mockPush).toHaveBeenCalledWith('/todos');
+        expect(mockPush).toHaveBeenCalledWith('/dashboard/todos');
     });
 
     it('navigates back to list from add', () => {

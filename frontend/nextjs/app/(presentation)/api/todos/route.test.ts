@@ -1,16 +1,23 @@
 import { GET, POST, PUT } from './route';
-import { api } from '../apiClient';
-import axios from 'axios';
+import { todoController } from '../controllers/todoController';
 import { v4 as uuidv4 } from 'uuid';
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyToken } from '../authExternal/verifyToken';
+import { after } from 'node:test';
 
-jest.mock('../apiClient', () => ({
-    api: {
-        get: jest.fn(),
-        post: jest.fn(),
+// Mock verifyToken if used in your route
+jest.mock('../authExternal/verifyToken', () => ({
+    verifyToken: jest.fn(),
+}));
+
+jest.mock('../controllers/todoController', () => ({
+    todoController: {
+        getAllTodos: jest.fn(),
+        createTodo: jest.fn(),
+        updateTodo: jest.fn(),
+        handleError: jest.fn(),
     },
 }));
-jest.mock('axios');
 jest.mock('uuid', () => ({
     v4: jest.fn(),
 }));
@@ -26,121 +33,184 @@ describe('Todos API route', () => {
     const mockTodo = { id: '1', title: 'A' };
     const mockId = 'uuid-1';
     const mockTitle = 'New Todo';
-    const request = {
-        json: jest.fn(),
-    } as Partial<NextRequest> as NextRequest;
+
+    // Use a fresh request object for each test
+    let request: NextRequest;
 
     beforeEach(() => {
         jest.clearAllMocks();
+        request = {
+            json: jest.fn(),
+        } as Partial<NextRequest> as NextRequest;
+        (verifyToken as jest.Mock).mockReturnValue(() => ({ id: 'mock-user-id', email: 'mock@example.com' }));
     });
 
     describe('GET', () => {
+
+
         it('should return todos on success', async () => {
             // Arrange
-            (api.get as jest.Mock).mockResolvedValue({ data: mockTodos });
-            (NextResponse.json as jest.Mock).mockImplementation((data, opts) => ({ data, opts }));
+            (todoController.getAllTodos as jest.Mock).mockResolvedValue({ data: mockTodos, opts: undefined });
 
             // Act
             const response = await GET(request);
 
             // Assert
-            expect(api.get).toHaveBeenCalledWith('/todos');
+            expect(todoController.getAllTodos).toHaveBeenCalledWith(request);
             expect(response).toEqual({ data: mockTodos, opts: undefined });
         });
 
-        it('should return 500 error on failure', async () => {
+        it('should return unauthorized if verifyToken returns string', async () => {
             // Arrange
-            (api.get as jest.Mock).mockRejectedValue(new Error('fail'));
-            (NextResponse.json as jest.Mock).mockImplementation((data, opts) => ({ data, opts }));
+            const unauthorizedResponse = { data: { error: 'Unauthorized' }, opts: { status: 500 } };
+            (verifyToken as jest.Mock).mockReturnValue('unauthorized');
+            (todoController.handleError as jest.Mock).mockReturnValue(unauthorizedResponse);
 
             // Act
-            const response = await GET();
+            const response = await GET(request);
 
             // Assert
-            expect(api.get).toHaveBeenCalledWith('/todos');
-            expect(response).toEqual({ data: { error: 'Failed to fetch todos' }, opts: { status: 500 } });
+            expect(todoController.handleError).toHaveBeenCalledWith({ message: 'unauthorized' }, 'Unauthorized');
+            expect(response).toEqual(unauthorizedResponse);
+        });
+
+        it('should return error if verifyToken returns error object', async () => {
+            // Arrange
+            const errorResponse = { error: 'token error' };
+            (verifyToken as jest.Mock).mockReturnValue({ error: 'token error' });
+
+            // Act
+            const response = await GET(request);
+
+            // Assert
+            expect(response).toEqual(errorResponse);
         });
     });
 
     describe('POST', () => {
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+            request = {
+                json: jest.fn(),
+            } as Partial<NextRequest> as NextRequest;
+        });
+
+        afterEach(() => {
+            jest.clearAllMocks();
+        });
+
         it('should create todo and return 201 on success', async () => {
             // Arrange
             (request.json as jest.Mock).mockResolvedValue({ title: mockTitle });
-            (uuidv4 as jest.Mock).mockReturnValue(mockId);
-            (api.post as jest.Mock).mockResolvedValue({ data: mockTodo });
-            (NextResponse.json as jest.Mock).mockImplementation((data, opts) => ({ data, opts }));
+            (todoController.createTodo as jest.Mock).mockResolvedValue({ data: mockTodo, opts: { status: 201 } });
 
             // Act
             const response = await POST(request);
 
             // Assert
-            expect(request.json).toHaveBeenCalled();
-            expect(uuidv4).toHaveBeenCalled();
-            expect(api.post).toHaveBeenCalledWith('/todos', { id: mockId, title: mockTitle });
+            expect(todoController.createTodo).toHaveBeenCalledWith(request);
             expect(response).toEqual({ data: mockTodo, opts: { status: 201 } });
         });
 
-        it('should return 500 error on failure', async () => {
+        it('should return validation error if title is missing', async () => {
             // Arrange
-            (request.json as jest.Mock).mockResolvedValue({ title: mockTitle });
-            (uuidv4 as jest.Mock).mockReturnValue(mockId);
-            (api.post as jest.Mock).mockRejectedValue(new Error('fail'));
-            (NextResponse.json as jest.Mock).mockImplementation((data, opts) => ({ data, opts }));
+            (request.json as jest.Mock).mockResolvedValue({});
+            (verifyToken as jest.Mock).mockReturnValue('unauthorized');
+            (todoController.handleError as jest.Mock).mockReturnValue({ data: { error: 'Title is required' }, opts: { status: 500 } });
 
             // Act
             const response = await POST(request);
 
             // Assert
-            expect(request.json).toHaveBeenCalled();
-            expect(uuidv4).toHaveBeenCalled();
-            expect(api.post).toHaveBeenCalledWith('/todos', { id: mockId, title: mockTitle });
-            expect(response).toEqual({ data: { error: 'Failed to create todo' }, opts: { status: 500 } });
+            expect(todoController.handleError).toHaveBeenCalledWith({ message: 'unauthorized' }, 'Unauthorized');
+            expect(response).toEqual({ data: { error: 'Title is required' }, opts: { status: 500 } });
+        });
+
+        it('should return unauthorized if verifyToken returns string', async () => {
+            // Arrange
+            const unauthorizedResponse = { data: { error: 'Unauthorized' }, opts: { status: 500 } };
+            (verifyToken as jest.Mock).mockReturnValue('unauthorized');
+            (todoController.handleError as jest.Mock).mockReturnValue(unauthorizedResponse);
+
+            // Act
+            const response = await POST(request);
+
+            // Assert
+            expect(todoController.handleError).toHaveBeenCalledWith({ message: 'unauthorized' }, 'Unauthorized');
+            expect(response).toEqual(unauthorizedResponse);
+        });
+
+        it('should return error if verifyToken returns error object', async () => {
+            // Arrange
+            const errorResponse = { error: 'token error' };
+            (verifyToken as jest.Mock).mockReturnValue({ error: 'token error' });
+            // Act
+            const response = await POST(request);
+
+            // Assert
+            expect(response).toEqual(errorResponse);
         });
     });
 
     describe('PUT', () => {
+        beforeEach(() => {
+            jest.clearAllMocks();
+            request = {
+                json: jest.fn(),
+            } as Partial<NextRequest> as NextRequest;
+        });
+
         it('should update todo and return updated todo on success', async () => {
             // Arrange
             (request.json as jest.Mock).mockResolvedValue({ id: mockId, title: mockTitle });
-            (axios.put as jest.Mock).mockResolvedValue({ data: mockTodo });
-            (NextResponse.json as jest.Mock).mockImplementation((data, opts) => ({ data, opts }));
-            const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
+            (todoController.updateTodo as jest.Mock).mockResolvedValue({ data: mockTodo, opts: undefined });
 
             // Act
             const response = await PUT(request);
 
             // Assert
             expect(request.json).toHaveBeenCalled();
-            expect(consoleSpy).toHaveBeenCalledWith('title:', mockTitle);
-            expect(axios.put).toHaveBeenCalledWith(
-                `http://localhost:3001/todos/${encodeURIComponent(mockId)}`,
-                { title: mockTitle }
-            );
+            expect(todoController.updateTodo).toHaveBeenCalledWith(request);
             expect(response).toEqual({ data: mockTodo, opts: undefined });
-
-            consoleSpy.mockRestore();
         });
 
-        it('should return 500 error on failure', async () => {
+        it('should return validation error if id or title is missing', async () => {
             // Arrange
-            (request.json as jest.Mock).mockResolvedValue({ id: mockId, title: mockTitle });
-            (axios.put as jest.Mock).mockRejectedValue(new Error('fail'));
-            (NextResponse.json as jest.Mock).mockImplementation((data, opts) => ({ data, opts }));
-            const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
+            (request.json as jest.Mock).mockResolvedValue({});
+            (verifyToken as jest.Mock).mockReturnValue('unauthorized');
+            (todoController.handleError as jest.Mock).mockReturnValue({ data: { error: 'ID is required, Title is required' }, opts: { status: 500 } });
 
             // Act
             const response = await PUT(request);
 
             // Assert
-            expect(request.json).toHaveBeenCalled();
-            expect(consoleSpy).toHaveBeenCalledWith('title:', mockTitle);
-            expect(axios.put).toHaveBeenCalledWith(
-                `http://localhost:3001/todos/${encodeURIComponent(mockId)}`,
-                { title: mockTitle }
-            );
-            expect(response).toEqual({ data: { error: 'Failed to update todo' }, opts: { status: 500 } });
-
-            consoleSpy.mockRestore();
+            expect(todoController.handleError).toHaveBeenCalledWith({ message: 'unauthorized' }, 'Unauthorized');
+            expect(response).toEqual({ data: { error: 'ID is required, Title is required' }, opts: { status: 500 } });
         });
-    });
+
+        it('should return unauthorized if verifyToken returns string', async () => {
+            // Arrange
+            const unauthorizedResponse = { data: { error: 'Unauthorized' }, opts: { status: 500 } };
+            (verifyToken as jest.Mock).mockReturnValue('unauthorized');
+            (todoController.handleError as jest.Mock).mockReturnValue(unauthorizedResponse);
+            // Act
+            const response = await PUT(request);
+
+            // Assert
+            expect(todoController.handleError).toHaveBeenCalledWith({ message: 'unauthorized' }, 'Unauthorized');
+            expect(response).toEqual(unauthorizedResponse);
+        });
+
+        it('should return error if verifyToken returns error object', async () => {
+            // Arrange
+            const errorResponse = { error: 'token error' };
+            (verifyToken as jest.Mock).mockReturnValue({ error: 'token error' });
+
+            // Act
+            const response = await PUT(request);
+            expect(response).toEqual(errorResponse);
+        });
+    }
+    );
 });

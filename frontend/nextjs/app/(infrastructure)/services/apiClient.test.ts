@@ -8,6 +8,7 @@ describe('apiClient', () => {
 
             // Act
             const baseURL = api.defaults.baseURL;
+
             const contentType = api.defaults.headers['Content-Type'];
 
             // Assert

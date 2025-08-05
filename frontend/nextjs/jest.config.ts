@@ -14,7 +14,7 @@ const config: Config = {
     setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
     moduleNameMapper: {
         '^@infrastructure/(.*)$': '<rootDir>/app/(infrastructure)/$1',
-        '^@presentation/(.*)$': '<rootDir>/app/(presentation/$1',
+        '^@presentation/(.*)$': '<rootDir>/app/(presentation)/$1',
         '^@application/(.*)$': '<rootDir>/app/application/$1',
         '^@components/(.*)$': '<rootDir>/app/components/$1',
         '^@tests/(.*)$': '<rootDir>/app/tests/$1',

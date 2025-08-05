@@ -29,6 +29,33 @@ backend/java/.mvn/
 backend/java/logs/
 backend/java/*.log
 
+# ASP.NET Core / .NET
+backend/net/bin/
+backend/net/obj/
+backend/net/*.user
+backend/net/*.suo
+backend/net/*.vspscc
+backend/net/*.vssscc
+backend/net/.vs/
+backend/net/TestResults/
+backend/net/*.dbmdl
+backend/net/*.log
+backend/net/.vscode/
+backend/net/.DS_Store
+backend/net/*.swp
+backend/net/*.pidb
+backend/net/*.userprefs
+backend/net/*.sln.docstates
+# NuGet packages
+backend/net/packages/
+backend/net/*.nupkg
+# Build output
+backend/net/**/*.dll
+backend/net/**/*.exe
+backend/net/**/*.pdb
+backend/net/**/*.cache
+backend/net/**/*.config
+backend/net/**/*.ide
 instructions/
 
 *storybook.log

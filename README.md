@@ -1,3 +1,32 @@
+# TodoSystem
+
+## Setup
+
+1. Install .NET 8 SDK, Docker, PostgreSQL.
+2. Update `appsettings.json` with your PostgreSQL connection string.
+3. Run database migrations:
+   ```
+   dotnet ef database update --project TodoSystem.Infrastructure
+   ```
+4. Start API:
+   ```
+   dotnet run --project TodoSystem.API
+   ```
+5. Access Swagger UI at `/swagger`.
+
+## Features
+
+- Clean Architecture, CQRS, MediatR
+- Minimal API, JWT Auth, Role-based Authorization
+- PostgreSQL, EF Core, Serilog, Health Checks
+- Pagination, Filtering, Sorting
+- Unit & Integration Tests
+- Docker & CI/CD
+
+## Example Requests
+
+See Swagger UI for examples.
+
 # todo-frontend
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).

@@ -39,7 +39,7 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "id": "1",
+  "id": "2",
   "title": "Updated Todo Title"
 }
 
@@ -71,4 +71,4 @@ Content-Type: application/json
 ###
 
 ### Delete TODO
-DELETE http://localhost:3000/api/todos/b5c78297-590f-4e7f-bedd-ce1402da93d4
+DELETE http://localhost:3000/api/todos/2

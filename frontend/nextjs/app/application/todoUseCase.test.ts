@@ -1,4 +1,4 @@
-import { todoService } from './todoService';
+import { todoUseCase } from './todoUseCase';
 import { todoRepository } from '@infrastructure/todoRepository';
 
 
@@ -12,7 +12,7 @@ jest.mock('@infrastructure/todoRepository', () => ({
 }));
 
 
-describe('todoService', () => {
+describe('todoUseCase', () => {
     const mockTodos = [{ id: '1', title: 'A' }, { id: '2', title: 'B' }];
     const mockTodo = { id: '1', title: 'A' };
     const mockId = '1';
@@ -28,7 +28,7 @@ describe('todoService', () => {
             (todoRepository.getAll as jest.Mock).mockResolvedValue(mockTodos);
 
             // Act
-            const result = await todoService.getAll();
+            const result = await todoUseCase.getAll();
 
             // Assert
             expect(todoRepository.getAll).toHaveBeenCalled();
@@ -42,7 +42,7 @@ describe('todoService', () => {
             (todoRepository.create as jest.Mock).mockResolvedValue(mockTodo);
 
             // Act
-            const result = await todoService.create(mockData.title);
+            const result = await todoUseCase.create(mockData.title);
 
             // Assert
             expect(todoRepository.create).toHaveBeenCalledWith(mockData.title);
@@ -56,7 +56,7 @@ describe('todoService', () => {
             (todoRepository.update as jest.Mock).mockResolvedValue(mockTodo);
 
             // Act
-            const result = await todoService.update(mockId, mockData.title);
+            const result = await todoUseCase.update(mockId, mockData.title);
 
             // Assert
             expect(todoRepository.update).toHaveBeenCalledWith(mockId, mockData.title);
@@ -70,7 +70,7 @@ describe('todoService', () => {
             (todoRepository.delete as jest.Mock).mockResolvedValue(true);
 
             // Act
-            const result = await todoService.delete(mockId);
+            const result = await todoUseCase.delete(mockId);
 
             // Assert
             expect(todoRepository.delete).toHaveBeenCalledWith(mockId);

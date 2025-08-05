@@ -2,11 +2,11 @@ import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useTodos } from './useTodos';
-import { todoService } from '@application/todoService';
+import { todoUseCase } from '#app/application/todoUseCase.js';
 
 
-jest.mock('@application/todoService', () => ({
-    todoService: {
+jest.mock('@application/todoUseCase', () => ({
+    todoUseCase: {
         getAll: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
@@ -42,21 +42,21 @@ describe('useTodos - CRUD', () => {
 
     it('should fetch todos with useQuery', async () => {
         // Arrange
-        (todoService.getAll as jest.Mock).mockResolvedValue(mockTodos);
+        (todoUseCase.getAll as jest.Mock).mockResolvedValue(mockTodos);
 
         // Act
         const { result } = renderHook(() => useTodos(), { wrapper });
         await waitFor(() => result.current.todos.length > 0);
 
         // Assert
-        expect(todoService.getAll).toHaveBeenCalled();
+        expect(todoUseCase.getAll).toHaveBeenCalled();
         expect(result.current.todos).toEqual(mockTodos);
         expect(result.current.loading).toBe(false);
     });
 
-    it('should call todoService.create and invalidate queries on success', async () => {
+    it('should call todoUseCase.create and invalidate queries on success', async () => {
         // Arrange
-        (todoService.create as jest.Mock).mockResolvedValue(mockTodo);
+        (todoUseCase.create as jest.Mock).mockResolvedValue(mockTodo);
 
         // Act
         const { result } = renderHook(() => useTodos(), { wrapper });
@@ -65,13 +65,13 @@ describe('useTodos - CRUD', () => {
         });
 
         // Assert
-        expect(todoService.create).toHaveBeenCalledWith(mockTitle);
+        expect(todoUseCase.create).toHaveBeenCalledWith(mockTitle);
         expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['todos'] });
     });
 
-    it('should handle error if todoService.create throws', async () => {
+    it('should handle error if todoUseCase.create throws', async () => {
         // Arrange
-        (todoService.create as jest.Mock).mockRejectedValue(new Error('Create failed'));
+        (todoUseCase.create as jest.Mock).mockRejectedValue(new Error('Create failed'));
 
         // Act
         const { result } = renderHook(() => useTodos(), { wrapper });
@@ -85,15 +85,15 @@ describe('useTodos - CRUD', () => {
         }
 
         // Assert
-        expect(todoService.create).toHaveBeenCalledWith(mockTitle);
+        expect(todoUseCase.create).toHaveBeenCalledWith(mockTitle);
         expect(invalidateQueries).not.toHaveBeenCalled();
         expect(error).toBeInstanceOf(Error);
         expect((error as Error).message).toBe('Create failed');
     });
 
-    it('should call todoService.update and invalidate queries on success', async () => {
+    it('should call todoUseCase.update and invalidate queries on success', async () => {
         // Arrange
-        (todoService.update as jest.Mock).mockResolvedValue(mockTodo);
+        (todoUseCase.update as jest.Mock).mockResolvedValue(mockTodo);
 
         // Act
         const { result } = renderHook(() => useTodos(), { wrapper });
@@ -102,13 +102,13 @@ describe('useTodos - CRUD', () => {
         });
 
         // Assert
-        expect(todoService.update).toHaveBeenCalledWith(mockId, mockTitle);
+        expect(todoUseCase.update).toHaveBeenCalledWith(mockId, mockTitle);
         expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['todos'] });
     });
 
-    it('should handle error if todoService.update throws', async () => {
+    it('should handle error if todoUseCase.update throws', async () => {
         // Arrange
-        (todoService.update as jest.Mock).mockRejectedValue(new Error('Update failed'));
+        (todoUseCase.update as jest.Mock).mockRejectedValue(new Error('Update failed'));
 
         // Act
         const { result } = renderHook(() => useTodos(), { wrapper });
@@ -122,15 +122,15 @@ describe('useTodos - CRUD', () => {
         }
 
         // Assert
-        expect(todoService.update).toHaveBeenCalledWith(mockId, mockTitle);
+        expect(todoUseCase.update).toHaveBeenCalledWith(mockId, mockTitle);
         expect(invalidateQueries).not.toHaveBeenCalled();
         expect(error).toBeInstanceOf(Error);
         expect((error as Error).message).toBe('Update failed');
     });
 
-    it('should call todoService.delete with correct id and invalidate queries on success', async () => {
+    it('should call todoUseCase.delete with correct id and invalidate queries on success', async () => {
         // Arrange
-        (todoService.delete as jest.Mock).mockResolvedValue(true);
+        (todoUseCase.delete as jest.Mock).mockResolvedValue(true);
 
         // Act
         const { result } = renderHook(() => useTodos(), { wrapper });
@@ -139,13 +139,13 @@ describe('useTodos - CRUD', () => {
         });
 
         // Assert
-        expect(todoService.delete).toHaveBeenCalledWith(mockId);
+        expect(todoUseCase.delete).toHaveBeenCalledWith(mockId);
         expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['todos'] });
     });
 
-    it('should handle error if todoService.delete throws', async () => {
+    it('should handle error if todoUseCase.delete throws', async () => {
         // Arrange
-        (todoService.delete as jest.Mock).mockRejectedValue(new Error('Delete failed'));
+        (todoUseCase.delete as jest.Mock).mockRejectedValue(new Error('Delete failed'));
 
         // Act
         const { result } = renderHook(() => useTodos(), { wrapper });
@@ -159,7 +159,7 @@ describe('useTodos - CRUD', () => {
         }
 
         // Assert
-        expect(todoService.delete).toHaveBeenCalledWith(mockId);
+        expect(todoUseCase.delete).toHaveBeenCalledWith(mockId);
         expect(invalidateQueries).not.toHaveBeenCalled();
         expect(error).toBeInstanceOf(Error);
         expect((error as Error).message).toBe('Delete failed');

@@ -5,4 +5,5 @@ export interface ITodoRepository {
     create(title: string): Promise<Todo>;
     update(id: string, title: string): Promise<Todo>;
     delete(id: string): Promise<void>;
+    getById(id: string): Promise<Todo | null>;
 }

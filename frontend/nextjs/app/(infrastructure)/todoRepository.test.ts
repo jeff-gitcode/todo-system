@@ -1,9 +1,9 @@
 import { todoRepository } from './todoRepository';
 import { Todo } from '@domain/models';
-import { localApi } from './api/apiClient';
+import { localApi } from './services/apiClient';
 
 // Mock localApi
-jest.mock('./api/apiClient', () => ({
+jest.mock('./services/apiClient', () => ({
     localApi: {
         get: jest.fn(),
         post: jest.fn(),

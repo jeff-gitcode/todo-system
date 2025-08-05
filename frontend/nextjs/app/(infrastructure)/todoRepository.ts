@@ -1,6 +1,6 @@
 import { ITodoRepository } from '@domain/repositories';
 import { Todo } from '@domain/models';
-import { localApi } from './api/apiClient';
+import { localApi } from './services/apiClient';
 
 const END_POINT = '/todos';
 
@@ -19,5 +19,14 @@ export const todoRepository: ITodoRepository = {
     },
     async delete(id: string) {
         await localApi.delete(`${END_POINT}/${encodeURIComponent(id)}`);
+    },
+    async getById(id: string) {
+        try {
+            const res = await localApi.get<Todo>(`${END_POINT}/${encodeURIComponent(id)}`);
+            return res.data;
+        } catch (error) {
+            // If not found or error, return null
+            return null;
+        }
     }
 };

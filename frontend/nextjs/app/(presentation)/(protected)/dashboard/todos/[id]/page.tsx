@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 export default function TodoDetailPage() {
     const { createTodo, updateTodo, todos, loading } = useTodos();
@@ -94,7 +95,10 @@ export default function TodoDetailPage() {
                         aria-required="true"
                     />
                     {titleError && (
-                        <p className="text-red-500 text-sm mt-1">{titleError}</p>
+                        <Alert variant="destructive" className="mt-2 py-2">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription>{titleError}</AlertDescription>
+                        </Alert>
                     )}
                 </div>
                 <Button
@@ -164,7 +168,10 @@ export default function TodoDetailPage() {
                         </Button>
                     </div>
                     {titleError && (
-                        <p className="text-red-500 text-sm mt-1">{titleError}</p>
+                        <Alert variant="destructive" className="mt-2 py-2">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription>{titleError}</AlertDescription>
+                        </Alert>
                     )}
                 </div>
             ) : (

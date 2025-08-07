@@ -5,23 +5,20 @@ import { useTodos } from '#hooks/useTodos';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function TodoDetailPage() {
     const { createTodo, updateTodo, todos, loading } = useTodos();
-    console.log('Todos:', todos);
-    console.log('Loading:', loading);
     const params = useParams();
     const searchParams = useSearchParams();
     const router = useRouter();
     const id = typeof params?.id === 'string' ? params.id : Array.isArray(params?.id) ? params.id[0] : '';
-    console.log('ID:', params);
     const isNew = id === 'new';
 
     const [title, setTitle] = useState('');
     const [editTitle, setEditTitle] = useState('');
     const [todo, setTodo] = useState<{ id: string; title: string } | null>(null);
-
-    // For edit mode
+    const [titleError, setTitleError] = useState('');
     const [isEdit, setIsEdit] = useState(isNew || searchParams.get('edit') === '1');
 
     // Load todo if not new
@@ -33,11 +30,21 @@ export default function TodoDetailPage() {
         }
     }, [id, isNew, loading, todos]);
 
+    // Validate title
+    const validateTitle = (value: string): boolean => {
+        if (!value.trim()) {
+            setTitleError('Title is required');
+            return false;
+        }
+        setTitleError('');
+        return true;
+    };
+
     // Add TODO
     const handleAdd = () => {
-        if (title.trim()) {
+        if (validateTitle(title)) {
             createTodo.mutate(title, {
-                onSuccess: (newTodo) => {
+                onSuccess: () => {
                     setTitle('');
                     router.push(`/dashboard/todos`);
                 }
@@ -47,7 +54,7 @@ export default function TodoDetailPage() {
 
     // Update TODO
     const handleUpdate = () => {
-        if (todo && editTitle.trim()) {
+        if (todo && validateTitle(editTitle)) {
             updateTodo.mutate({ id: todo.id, title: editTitle }, {
                 onSuccess: () => {
                     setIsEdit(false);
@@ -69,15 +76,33 @@ export default function TodoDetailPage() {
         return (
             <Card className="p-6 max-w-md mx-auto mt-10">
                 <h1 className="text-2xl font-bold mb-4">Add TODO</h1>
-                <input
-                    type="text"
-                    className="border rounded px-2 py-1 w-full mb-4"
-                    placeholder="Enter TODO title"
-                    value={title}
-                    onChange={e => setTitle(e.target.value)}
-                />
-                <Button className="w-full mb-2" onClick={handleAdd}>
-                    Add
+                <div className="mb-4">
+                    <label htmlFor="title" className="block text-sm font-medium mb-1">
+                        Title <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                        id="title"
+                        type="text"
+                        className={`border rounded px-2 py-1 w-full ${titleError ? 'border-red-500' : ''}`}
+                        placeholder="Enter TODO title"
+                        value={title}
+                        onChange={e => {
+                            setTitle(e.target.value);
+                            if (titleError) validateTitle(e.target.value);
+                        }}
+                        required
+                        aria-required="true"
+                    />
+                    {titleError && (
+                        <p className="text-red-500 text-sm mt-1">{titleError}</p>
+                    )}
+                </div>
+                <Button
+                    className="w-full mb-2"
+                    onClick={handleAdd}
+                    disabled={createTodo.isPending}
+                >
+                    {createTodo.isPending ? 'Adding...' : 'Add'}
                 </Button>
                 <Button
                     variant="outline"
@@ -102,26 +127,45 @@ export default function TodoDetailPage() {
             <h1 className="text-2xl font-bold mb-4">TODO Detail</h1>
             <div className="mb-2"><strong>ID:</strong> {todo.id}</div>
             {isEdit ? (
-                <div className="mb-4 flex gap-2">
-                    <input
-                        type="text"
-                        className="border rounded px-2 py-1 flex-1"
-                        value={editTitle}
-                        onChange={e => setEditTitle(e.target.value)}
-                    />
-                    <Button
-                        size="sm"
-                        onClick={handleUpdate}
-                    >
-                        Save
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setIsEdit(false)}
-                    >
-                        Cancel
-                    </Button>
+                <div className="mb-4">
+                    <label htmlFor="editTitle" className="block text-sm font-medium mb-1">
+                        Title <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex gap-2">
+                        <input
+                            id="editTitle"
+                            type="text"
+                            className={`border rounded px-2 py-1 flex-1 ${titleError ? 'border-red-500' : ''}`}
+                            value={editTitle}
+                            onChange={e => {
+                                setEditTitle(e.target.value);
+                                if (titleError) validateTitle(e.target.value);
+                            }}
+                            required
+                            aria-required="true"
+                        />
+                        <Button
+                            size="sm"
+                            onClick={handleUpdate}
+                            disabled={updateTodo.isPending}
+                        >
+                            {updateTodo.isPending ? 'Saving...' : 'Save'}
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                                setIsEdit(false);
+                                setTitleError('');
+                                setEditTitle(todo.title);
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                    </div>
+                    {titleError && (
+                        <p className="text-red-500 text-sm mt-1">{titleError}</p>
+                    )}
                 </div>
             ) : (
                 <div className="mb-4"><strong>Title:</strong> {todo.title}</div>

@@ -104,6 +104,14 @@
       "storybook": "./app/(presentation)/(auth)/login/useSign.mock.ts",
       "default": "./app/(presentation)/(auth)/login/useSignIn.ts"
     },
+    "#hooks/useSignUp": {
+      "storybook": "./app/(presentation)/(auth)/signup/useSignUp.mock.ts",
+      "default": "./app/(presentation)/(auth)/signup/useSignUp.ts"
+    },
+    "#hooks/useSignOut": {
+      "storybook": "./app/(presentation)/(auth)/signout/useSignOut.mock.ts",
+      "default": "./app/(presentation)/(auth)/signout/useSignOut.ts"
+    },
     "#*": [
       "./*",
       "./*.ts",

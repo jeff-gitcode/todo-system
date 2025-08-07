@@ -87,6 +87,8 @@ npm run storybook
 
 Storybook will be available at [http://localhost:6006](http://localhost:6006).
 
+![Todo Storybook Demo](./doc/storybook.png)
+
 ### Why Storybook?
 
 - Build UI components and pages in isolation
@@ -94,6 +96,8 @@ Storybook will be available at [http://localhost:6006](http://localhost:6006).
 - Integrate with tools like Next.js, Tailwind CSS, Jest, and more
 - Document UI for your team to reuse
 - Automate UI workflows with CI
+
+
 
 Learn more at [storybook.js.org](https://storybook.js.org/)
 
@@ -130,6 +134,9 @@ npm run json-server
 This will start the mock API at [http://localhost:3001/todos](http://localhost:3001/todos).
 
 ### Add jest
+
+![Todo Jest Demo](./doc/jest-test.png)
+
 ```bash
 yarn add -D jest jest-environment-jsdom @testing-library/react @testing-library/dom @testing-library/jest-dom ts-node @types/jest
 yarn create jest@latest

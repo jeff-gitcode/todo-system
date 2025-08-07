@@ -3,7 +3,7 @@ import React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useSignOut } from "./useSignOut";
+import { useSignOut } from "#hooks/useSignOut";
 import { useRouter } from "next/navigation";
 
 export default function SignOutPage() {

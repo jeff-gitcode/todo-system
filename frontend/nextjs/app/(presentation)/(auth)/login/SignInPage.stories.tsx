@@ -23,16 +23,16 @@ const meta = {
       },
     },
   },
-//   decorators: [
-//     (Story) => {
-//       // Reset mocks before each story run
-//       mockSignIn.mockReset();
-//       mockSetError.mockReset();
-//       mockPush.mockReset();
-      
-//       return <Story />;
-//     }
-//   ]
+  //   decorators: [
+  //     (Story) => {
+  //       // Reset mocks before each story run
+  //       mockSignIn.mockReset();
+  //       mockSetError.mockReset();
+  //       mockPush.mockReset();
+
+  //       return <Story />;
+  //     }
+  //   ]
 } satisfies Meta<typeof SignInPage>;
 
 export default meta;
@@ -40,7 +40,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 // Default state story
-export const Normal: Story = {
+export const Default: Story = {
   beforeEach: async () => {
     // Mock the useSignIn hook to return default values
     useSignIn.mockReturnValue({
@@ -68,7 +68,7 @@ export const Normal: Story = {
 
       const signUpLink = canvas.getByText('Sign up');
       expect(signUpLink).toBeInTheDocument();
-     });
+    });
   },
   tags: ['autodocs'],
   render: () => <SignInPage />,
@@ -153,7 +153,7 @@ export const SubmitForm: Story = {
 // Navigate to sign up story
 export const NavigateToSignUp: Story = {
   beforeEach: async () => {
-    useSignIn .mockReturnValue({
+    useSignIn.mockReturnValue({
       signIn: mockSignIn,
       loading: false,
       error: null,
@@ -166,7 +166,7 @@ export const NavigateToSignUp: Story = {
     await step('Click the sign up link', async () => {
       const signUpLink = canvas.getByText('Sign up');
       await userEvent.click(signUpLink);
-      
+
       // In a real test, we would verify navigation, but Storybook's simulated
       // environment doesn't fully support this, so we're just verifying the click
       expect(signUpLink).toBeInTheDocument();

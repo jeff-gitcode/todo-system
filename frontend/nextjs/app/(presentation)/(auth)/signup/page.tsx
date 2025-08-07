@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useSignUp } from "./useSignUp";
+import { useSignUp } from "#hooks/useSignUp";
 
 export default function SignUpPage() {
     const { signUp, loading, error, setError } = useSignUp();

@@ -5,27 +5,27 @@ import SignInPage from './page';
 import { useSignIn } from './useSignIn';
 
 // Arrange: Mock useSignIn hook
-jest.mock('./useSignIn', ()=>{
+jest.mock('./useSignIn', () => {
     return {
         useSignIn: jest.fn(),
     };
 });
 
 jest.mock('next/navigation', () => ({
-  useRouter: () => ({
-    push: jest.fn(),
-    back: jest.fn(),
-  }),
-  usePathname: () => '/',
+    useRouter: () => ({
+        push: jest.fn(),
+        back: jest.fn(),
+    }),
+    usePathname: () => '/',
 }))
 
 // Mock nanostores if needed
 jest.mock('nanostores', () => ({
-  atom: jest.fn(() => ({
-    get: jest.fn(),
-    set: jest.fn(),
-    subscribe: jest.fn(),
-  })),
+    atom: jest.fn(() => ({
+        get: jest.fn(),
+        set: jest.fn(),
+        subscribe: jest.fn(),
+    })),
 }))
 
 describe('SignInPage', () => {

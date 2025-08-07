@@ -3,7 +3,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { fn, within, expect, userEvent } from "@storybook/test";
 import { useTodos } from '#hooks/useTodos';
-import TodoDetailPage from '@presentation/(protected)/todos/[id]/page';
+import TodoDetailPage from '@presentation/(protected)/dashboard/todos/[id]/page';
 
 const defaultRouter = {
     // The locale should be configured globally: https://storybook.js.org/docs/essentials/toolbars-and-globals#globals
@@ -47,7 +47,7 @@ export const ViewingTodo: Story = {
         nextjs: {
             appDirectory: true,
             navigation: {
-                pathname: '/todos/[id]',
+                pathname: '/dashboard/todos/[id]',
                 query: { id: '1' },
                 segments: [
                     ['id', '1'],
@@ -120,12 +120,12 @@ export const AddingNewTodo: Story = {
     parameters: {
         nextjs: {
             router: {
-                pathname: '/todos/new',
-                asPath: '/todos/new',
+                pathname: '/dashboard/todos/new',
+                asPath: '/dashboard/todos/new',
                 push: mockPush,
             },
             navigation: {
-                pathname: '/todos/[id]',
+                pathname: '/dashboard/todos/[id]',
                 query: { id: 'new' },
                 segments: [
                     ['id', 'new'],
@@ -165,7 +165,7 @@ export const AddingNewTodo: Story = {
             expect(mockCreateMutate).toHaveBeenCalledWith('New Task', expect.objectContaining({
                 onSuccess: expect.any(Function)
             }));
-            expect(mockPush).toHaveBeenCalledWith('/todos/3');
+            expect(mockPush).toHaveBeenCalledWith('/dashboard/todos');
         });
     },
     render: () => <TodoDetailPage />,
@@ -176,8 +176,8 @@ export const TodoNotFound: Story = {
     parameters: {
         nextjs: {
             router: {
-                pathname: '/todos/999',
-                asPath: '/todos/999',
+                pathname: '/dashboard/todos/999',
+                asPath: '/dashboard/todos/999',
                 push: mockPush,
             },
         },
@@ -211,12 +211,12 @@ export const EditingTodo: Story = {
     parameters: {
         nextjs: {
             router: {
-                pathname: '/todos/1',
-                asPath: '/todos/1?edit=1',
+                pathname: '/dashboard/todos/1',
+                asPath: '/dashboard/todos/1?edit=1',
                 push: mockPush,
             },
             navigation: {
-                pathname: '/todos/[id]',
+                pathname: '/dashboard/todos/[id]',
                 query: { id: '1' },
                 segments: [
                     ['id', '1'],
@@ -255,7 +255,7 @@ export const EditingTodo: Story = {
                 { id: '1', title: 'Updated Title' },
                 expect.objectContaining({ onSuccess: expect.any(Function) })
             );
-            expect(mockPush).toHaveBeenCalledWith('/todos/1');
+            expect(mockPush).toHaveBeenCalledWith('/dashboard/todos');
         });
     },
     render: () => <TodoDetailPage />,
@@ -266,8 +266,8 @@ export const CancelingEdit: Story = {
     parameters: {
         nextjs: {
             router: {
-                pathname: '/todos/1',
-                asPath: '/todos/1?edit=1',
+                pathname: '/dashboard/todos/1',
+                asPath: '/dashboard/todos/1?edit=1',
                 push: mockPush,
             },
             searchParams: new URLSearchParams('edit=1'),
@@ -323,7 +323,7 @@ export const NavigatingBack: Story = {
             const backButton = canvas.getByText('Back to List');
             await userEvent.click(backButton);
 
-            expect(mockPush).toHaveBeenCalledWith('/todos');
+            expect(mockPush).toHaveBeenCalledWith('/dashboard/todos');
         });
     },
     render: () => <TodoDetailPage />,
@@ -334,8 +334,8 @@ export const EmptyFormValidation: Story = {
     parameters: {
         nextjs: {
             router: {
-                pathname: '/todos/1',
-                asPath: '/todos/1?edit=1',
+                pathname: '/dashboard/todos/1',
+                asPath: '/dashboard/todos/1?edit=1',
                 push: mockPush,
             },
             searchParams: new URLSearchParams('edit=1'),

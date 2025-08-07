@@ -24,13 +24,8 @@ describe('todoController', () => {
     const mockId = '1';
     const mockTitle = 'A';
 
-    let req: any;
-
     beforeEach(() => {
         jest.clearAllMocks();
-        req = {
-            json: jest.fn(),
-        };
     });
 
     describe('getAllTodos', () => {
@@ -38,7 +33,7 @@ describe('todoController', () => {
             (todoUseCase.getAll as jest.Mock).mockResolvedValue(mockTodos);
             (NextResponse.json as jest.Mock).mockReturnValue('json-response');
 
-            const result = await todoController.getAllTodos(req);
+            const result = await todoController.getAllTodos();
 
             expect(todoUseCase.getAll).toHaveBeenCalled();
             expect(NextResponse.json).toHaveBeenCalledWith(mockTodos);
@@ -49,7 +44,7 @@ describe('todoController', () => {
             (todoUseCase.getAll as jest.Mock).mockRejectedValue(new Error('fail'));
             (NextResponse.json as jest.Mock).mockReturnValue('error-response');
 
-            const result = await todoController.getAllTodos(req);
+            const result = await todoController.getAllTodos();
 
             expect(NextResponse.json).toHaveBeenCalledWith({ error: 'fail' }, { status: 500 });
             expect(result).toBe('error-response');
@@ -58,51 +53,89 @@ describe('todoController', () => {
 
     describe('createTodo', () => {
         it('should create todo and return 201 on success', async () => {
-            req.json.mockResolvedValue({ title: mockTitle });
+            const todoData = { title: mockTitle };
             (todoUseCase.create as jest.Mock).mockResolvedValue(mockTodo);
             (NextResponse.json as jest.Mock).mockReturnValue('json-response');
 
-            const result = await todoController.createTodo(req);
+            const result = await todoController.createTodo(todoData);
 
-            expect(req.json).toHaveBeenCalled();
-            expect(todoUseCase.create).toHaveBeenCalledWith(mockTitle);
+            expect(todoUseCase.create).toHaveBeenCalledWith(mockTitle, undefined, undefined);
             expect(NextResponse.json).toHaveBeenCalledWith(mockTodo, { status: 201 });
             expect(result).toBe('json-response');
         });
 
         it('should handle error', async () => {
-            req.json.mockRejectedValue(new Error('fail'));
+            const todoData = { title: mockTitle };
+            (todoUseCase.create as jest.Mock).mockRejectedValue(new Error('fail'));
             (NextResponse.json as jest.Mock).mockReturnValue('error-response');
 
-            const result = await todoController.createTodo(req);
+            const result = await todoController.createTodo(todoData);
 
             expect(NextResponse.json).toHaveBeenCalledWith({ error: 'fail' }, { status: 500 });
             expect(result).toBe('error-response');
+        });
+        
+        it('should pass optional fields to todoUseCase.create', async () => {
+            const todoData = { 
+                title: mockTitle,
+                description: 'Test description',
+                dueDate: '2023-12-31'
+            };
+            (todoUseCase.create as jest.Mock).mockResolvedValue({...mockTodo, ...todoData});
+            (NextResponse.json as jest.Mock).mockReturnValue('json-response');
+
+            await todoController.createTodo(todoData);
+
+            expect(todoUseCase.create).toHaveBeenCalledWith(
+                mockTitle, 
+                'Test description', 
+                '2023-12-31'
+            );
         });
     });
 
     describe('updateTodo', () => {
         it('should update todo and return updated todo on success', async () => {
-            req.json.mockResolvedValue({ id: mockId, title: mockTitle });
+            const updateData = { id: mockId, title: mockTitle };
             (todoUseCase.update as jest.Mock).mockResolvedValue(mockTodo);
             (NextResponse.json as jest.Mock).mockReturnValue('json-response');
 
-            const result = await todoController.updateTodo(req);
+            const result = await todoController.updateTodo(updateData);
 
-            expect(req.json).toHaveBeenCalled();
-            expect(todoUseCase.update).toHaveBeenCalledWith(mockId, mockTitle);
+            expect(todoUseCase.update).toHaveBeenCalledWith(mockId, mockTitle, undefined, undefined);
             expect(NextResponse.json).toHaveBeenCalledWith(mockTodo);
             expect(result).toBe('json-response');
         });
 
         it('should handle error', async () => {
-            req.json.mockRejectedValue(new Error('fail'));
+            const updateData = { id: mockId, title: mockTitle };
+            (todoUseCase.update as jest.Mock).mockRejectedValue(new Error('fail'));
             (NextResponse.json as jest.Mock).mockReturnValue('error-response');
 
-            const result = await todoController.updateTodo(req);
+            const result = await todoController.updateTodo(updateData);
 
             expect(NextResponse.json).toHaveBeenCalledWith({ error: 'fail' }, { status: 500 });
             expect(result).toBe('error-response');
+        });
+        
+        it('should pass optional fields to todoUseCase.update', async () => {
+            const updateData = { 
+                id: mockId, 
+                title: mockTitle,
+                description: 'Updated description',
+                dueDate: '2024-01-15'
+            };
+            (todoUseCase.update as jest.Mock).mockResolvedValue({...mockTodo, ...updateData});
+            (NextResponse.json as jest.Mock).mockReturnValue('json-response');
+
+            await todoController.updateTodo(updateData);
+
+            expect(todoUseCase.update).toHaveBeenCalledWith(
+                mockId, 
+                mockTitle, 
+                'Updated description', 
+                '2024-01-15'
+            );
         });
     });
 
@@ -111,7 +144,7 @@ describe('todoController', () => {
             (todoUseCase.getById as jest.Mock).mockResolvedValue(mockTodo);
             (NextResponse.json as jest.Mock).mockReturnValue('json-response');
 
-            const result = await todoController.getTodoById(req, mockId);
+            const result = await todoController.getTodoById({} as any, mockId);
 
             expect(todoUseCase.getById).toHaveBeenCalledWith(mockId);
             expect(NextResponse.json).toHaveBeenCalledWith(mockTodo);
@@ -119,10 +152,10 @@ describe('todoController', () => {
         });
 
         it('should return 404 if not found', async () => {
-            (todoUseCase.getById as jest.Mock).mockResolvedValue(undefined);
+            (todoUseCase.getById as jest.Mock).mockResolvedValue(null);
             (NextResponse.json as jest.Mock).mockReturnValue('not-found-response');
 
-            const result = await todoController.getTodoById(req, mockId);
+            const result = await todoController.getTodoById({} as any, mockId);
 
             expect(NextResponse.json).toHaveBeenCalledWith({ error: 'Not found' }, { status: 404 });
             expect(result).toBe('not-found-response');
@@ -132,7 +165,7 @@ describe('todoController', () => {
             (todoUseCase.getById as jest.Mock).mockRejectedValue(new Error('fail'));
             (NextResponse.json as jest.Mock).mockReturnValue('error-response');
 
-            const result = await todoController.getTodoById(req, mockId);
+            const result = await todoController.getTodoById({} as any, mockId);
 
             expect(NextResponse.json).toHaveBeenCalledWith({ error: 'fail' }, { status: 500 });
             expect(result).toBe('error-response');
@@ -144,7 +177,7 @@ describe('todoController', () => {
             (todoUseCase.delete as jest.Mock).mockResolvedValue(undefined);
             (NextResponse.json as jest.Mock).mockReturnValue('json-response');
 
-            const result = await todoController.deleteTodo(req, mockId);
+            const result = await todoController.deleteTodo({} as any, mockId);
 
             expect(todoUseCase.delete).toHaveBeenCalledWith(mockId);
             expect(NextResponse.json).toHaveBeenCalledWith({ success: true });
@@ -155,7 +188,7 @@ describe('todoController', () => {
             (todoUseCase.delete as jest.Mock).mockRejectedValue(new Error('fail'));
             (NextResponse.json as jest.Mock).mockReturnValue('error-response');
 
-            const result = await todoController.deleteTodo(req, mockId);
+            const result = await todoController.deleteTodo({} as any, mockId);
 
             expect(NextResponse.json).toHaveBeenCalledWith({ error: 'fail' }, { status: 500 });
             expect(result).toBe('error-response');

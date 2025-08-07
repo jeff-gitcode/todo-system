@@ -27,6 +27,41 @@ const config: Config = {
         '^@config/(.*)$': '<rootDir>/app/config/$1',
         '^@assets/(.*)$': '<rootDir>/app/assets/$1',
     },
+    // Fix the testPathIgnorePatterns to use proper regex format
+    testPathIgnorePatterns: [
+        '/node_modules/',
+        '/.next/',
+        '.*\\.spec\\.ts$'  // Properly escaped regex for .spec.ts files
+    ],
+    // You can also use testMatch to specifically include only certain files
+    testMatch: [
+        '**/*.test.ts',
+        '**/*.test.tsx',
+        '**/__tests__/**/*.ts',
+        '**/__tests__/**/*.tsx'
+    ],
+    // Add coverage configuration
+    collectCoverage: true,
+    coverageDirectory: 'coverage',
+    collectCoverageFrom: [
+        'app/**/*.{js,jsx,ts,tsx}',
+        '!app/**/*.d.ts',
+        '!app/**/*.stories.{js,jsx,ts,tsx}',
+        '!app/**/_*.{js,jsx,ts,tsx}',
+        '!app/**/page.tsx', // Exclude Next.js page files if needed
+        '!app/**/layout.tsx', // Exclude layout files if needed
+        '!app/(presentation)/api/route.{js,ts}', // Exclude API route handlers if needed
+        '!**/node_modules/**',
+    ],
+    coverageThreshold: {
+        global: {
+            branches: 70,
+            functions: 70,
+            lines: 70,
+            statements: 70,
+        },
+    },
+    coverageReporters: ['json', 'lcov', 'text', 'clover', 'html'],
 }
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

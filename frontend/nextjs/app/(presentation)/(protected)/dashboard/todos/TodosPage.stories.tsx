@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import TodosPage from '@presentation/(protected)/todos/page';
+import TodosPage from '@presentation/(protected)/dashboard/todos/page';
 import { fn, within, expect, userEvent } from "@storybook/test";
 
 import { useTodos } from '#hooks/useTodos';
@@ -16,8 +16,8 @@ const meta = {
         nextjs: {
             appDirectory: true,
             router: {
-                pathname: '/todos',
-                asPath: '/todos',
+                pathname: '/dashboard/todos',
+                asPath: '/dashboard/todos',
                 push: mockPush,
                 replace: fn(),
                 refresh: mockRefresh,
@@ -114,7 +114,7 @@ export const NavigateToTodoDetail: Story = {
             const firstTodo = canvas.getByText(/First Todo/);
             await userEvent.click(firstTodo);
 
-            expect(mockPush).toHaveBeenCalledWith('/todos/1');
+            expect(mockPush).toHaveBeenCalledWith('/dashboard/todos/1');
         });
     },
     render: () => <TodosPage />,
@@ -142,7 +142,7 @@ export const NavigateToEditPage: Story = {
             const editButtons = canvas.getAllByText('Edit');
             await userEvent.click(editButtons[0]);
 
-            expect(mockPush).toHaveBeenCalledWith('/todos/1?edit=1');
+            expect(mockPush).toHaveBeenCalledWith('/dashboard/todos/1?edit=1');
         });
     },
     render: () => <TodosPage />,
@@ -205,7 +205,7 @@ export const NavigateToAddPage: Story = {
             const addButton = canvas.getByText('Add TODO');
             await userEvent.click(addButton);
 
-            expect(mockPush).toHaveBeenCalledWith('/todos/new?edit=1');
+            expect(mockPush).toHaveBeenCalledWith('/dashboard/todos/new?edit=1');
         });
     },
     render: () => <TodosPage />,

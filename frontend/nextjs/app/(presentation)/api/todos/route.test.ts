@@ -109,7 +109,7 @@ describe('Todos API route', () => {
             const response = await POST(request);
 
             // Assert
-            expect(todoController.createTodo).toHaveBeenCalledWith(request);
+            expect(todoController.createTodo).toHaveBeenCalledWith({ title: mockTitle });
             expect(response).toEqual({ data: mockTodo, opts: { status: 201 } });
         });
 
@@ -171,7 +171,7 @@ describe('Todos API route', () => {
 
             // Assert
             expect(request.json).toHaveBeenCalled();
-            expect(todoController.updateTodo).toHaveBeenCalledWith(request);
+            expect(todoController.updateTodo).toHaveBeenCalledWith({ id: mockId, title: mockTitle });
             expect(response).toEqual({ data: mockTodo, opts: undefined });
         });
 

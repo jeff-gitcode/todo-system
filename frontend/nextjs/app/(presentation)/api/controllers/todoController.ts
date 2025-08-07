@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { todoUseCase } from '@application/todoUseCase';
 
 // Group all controller functions into a single object for clean architecture
 export const todoController = {
-    async getAllTodos(req: NextRequest) {
+    async getAllTodos() {
         try {
             const todos = await todoUseCase.getAll();
             return NextResponse.json(todos);
@@ -12,27 +12,27 @@ export const todoController = {
         }
     },
 
-    async createTodo(req: NextRequest) {
+    async createTodo(body: { title: string; description?: string; dueDate?: string }) {
         try {
-            const { title } = await req.json();
-            const todo = await todoUseCase.create(title);
+            const { title, description, dueDate } = body;
+            const todo = await todoUseCase.create(title, description, dueDate);
             return NextResponse.json(todo, { status: 201 });
         } catch (error) {
             return todoController.handleError(error, 'Failed to create todo');
         }
     },
 
-    async updateTodo(req: NextRequest) {
+    async updateTodo(body: { id: string; title: string; description?: string; dueDate?: string }) {
         try {
-            const { id, title } = await req.json();
-            const todo = await todoUseCase.update(id, title);
+            const { id, title, description, dueDate } = body;
+            const todo = await todoUseCase.update(id, title, description, dueDate);
             return NextResponse.json(todo);
         } catch (error) {
             return todoController.handleError(error, 'Failed to update todo');
         }
     },
 
-    async getTodoById(req: NextRequest, id: string) {
+    async getTodoById(_req: unknown, id: string) {
         try {
             const todo = await todoUseCase.getById(id);
             if (!todo) {
@@ -44,7 +44,7 @@ export const todoController = {
         }
     },
 
-    async deleteTodo(req: NextRequest, id: string) {
+    async deleteTodo(_req: unknown, id: string) {
         try {
             await todoUseCase.delete(id);
             return NextResponse.json({ success: true });
@@ -59,4 +59,9 @@ export const todoController = {
         }
         return NextResponse.json({ error: defaultMessage }, { status: 500 });
     }
+}
+
+export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+    const params = await context.params;
+    return todoController.getTodoById(req, params.id);
 }

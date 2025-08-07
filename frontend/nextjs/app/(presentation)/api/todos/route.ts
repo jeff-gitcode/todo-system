@@ -39,7 +39,8 @@ export async function POST(req: NextRequest) {
         return todoController.handleError({ message: parseResult.error.issues.map(e => e.message).join(', ') }, 'Validation failed');
     }
 
-    return await todoController.createTodo(req);
+    // Pass the parsed body to the controller
+    return await todoController.createTodo(body);
 }
 
 export async function PUT(req: NextRequest) {
@@ -55,5 +56,6 @@ export async function PUT(req: NextRequest) {
         return todoController.handleError({ message: parseResult.error.issues.map(e => e.message).join(', ') }, 'Validation failed');
     }
 
-    return await todoController.updateTodo(req);
+    // Pass the parsed body to the controller
+    return await todoController.updateTodo(body);
 }

@@ -111,7 +111,7 @@ export default function Navigation() {
                                     </Link>
                                     {isAuthenticated && (
                                         <Link
-                                            href="/todos"
+                                            href="/dashboard/todos"
                                             className="flex items-center text-sm font-medium"
                                             onClick={() => setIsOpen(false)}
                                         >

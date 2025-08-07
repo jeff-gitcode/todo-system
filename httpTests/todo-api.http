@@ -20,11 +20,11 @@ Content-Type: application/json
 ### Get User Profile Request:
 @token = {{login.response.body.*}}
 
-### 获取所有 TODO（需替换 {{token}} 为上一步返回的 token）
+### get todo list（需替换 {{token}} 为上一步返回的 token）
 GET http://localhost:3000/api/todos
 Authorization: Bearer {{token}}
 
-### 新建 TODO
+### create TODO
 POST http://localhost:3000/api/todos
 Content-Type: application/json
 Authorization: Bearer {{token}}
@@ -33,42 +33,16 @@ Authorization: Bearer {{token}}
   "title": "New Todo from http file"
 }
 
-### 更新 TODO
+### update TODO
 PUT http://localhost:3000/api/todos
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "id": "2",
+  "id": "91a4",
   "title": "Updated Todo Title"
 }
 
-### Create a new TODO
-POST http://localhost:3000/api/todos
-Content-Type: application/json
-
-{
-  "title": "New Task"
-}
-
-###
-
-### Get TODO by ID
-GET http://localhost:3000/api/todos/1
-Accept: application/json
-
-###
-
-### Update TODO
-PUT http://localhost:3000/api/todos
-Content-Type: application/json
-
-{
-  "id": "1",
-  "title": "Updated Task"
-}
-
-###
-
 ### Delete TODO
-DELETE http://localhost:3000/api/todos/2
+DELETE http://localhost:3000/api/todos/91a4
+Authorization: Bearer {{token}}

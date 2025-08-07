@@ -3,6 +3,11 @@ import { test, expect } from '@playwright/test';
 import { TodoPage } from './models/todoPage';
 import { TodoDetailPage } from './models/todoDetailPage';
 import { TodoAddPage } from './models/todoAddPage';
+import { getByRole } from '@testing-library/dom/types/queries';
+import { sign } from 'jsonwebtoken';
+
+const TEST_USER_EMAIL = 'test1@test.com';
+const TEST_USER_PASSWORD = 'Test01@test';
 
 test.describe('Todo Application E2E', () => {
   test.describe.configure({ mode: 'serial' });
@@ -15,7 +20,26 @@ test.describe('Todo Application E2E', () => {
   const uniqueTodoTitle = `E2E Test Todo ${Date.now()}`;
   let createdTodoId: string;
 
+  // Helper: login using UI and wait for dashboard and Sonner toast
+  async function login(page) {
+    await page.goto('/login');
+    await page.getByRole('textbox', { name: 'Email address' }).fill(TEST_USER_EMAIL);
+    await page.getByRole('textbox', { name: 'Password' }).fill(TEST_USER_PASSWORD);
+    await page.getByRole('button', { name: 'Sign in' }).click();
+
+    // Wait for Sonner toast (success message)
+    // await expect(page.getByText('Success!')).toBeVisible();
+    // Optionally, also check for the description if needed:
+    // await expect(page.getByText('You have been signed in successfully.')).toBeVisible();
+
+    await expect(page).toHaveURL(/\/dashboard/);
+
+  }
+
   test.beforeEach(async ({ page }) => {
+    // Perform login using the new better-auth flow
+    await login(page);
+
     todoPage = new TodoPage(page);
     todoDetailPage = new TodoDetailPage(page);
     todoAddPage = new TodoAddPage(page);

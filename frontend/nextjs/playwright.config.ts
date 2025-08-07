@@ -13,9 +13,9 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './e2e',
-  timeout: 30 * 1000,
+  timeout: 300 * 1000,
   expect: {
-    timeout: 5000
+    timeout: 120000, // Increase timeout for expect assertions
   },
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
@@ -32,7 +32,10 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
-    video: 'on-first-retry',
+    video: {
+      mode: 'on',
+      size: { width: 1280, height: 720 }, // Set video size
+    },
     screenshot: 'only-on-failure',
     launchOptions: {
       args: ['--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage'],

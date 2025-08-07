@@ -1,5 +1,8 @@
 # TodoSystem
 
+![Todo System Demo](./frontend/nextjs/doc/nextjs-demo.gif)
+
+
 ## Setup
 
 1. Install .NET 8 SDK, Docker, PostgreSQL.

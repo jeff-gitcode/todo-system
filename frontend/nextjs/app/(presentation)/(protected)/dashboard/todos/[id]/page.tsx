@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function TodoDetailPage() {
     const { createTodo, updateTodo, todos, loading } = useTodos();
@@ -44,11 +45,39 @@ export default function TodoDetailPage() {
     // Add TODO
     const handleAdd = () => {
         if (validateTitle(title)) {
+            // Show loading toast
+            toast.loading("Creating todo...", {
+                description: "Please wait while we add your new todo",
+                id: "create-todo"
+            });
+            
             createTodo.mutate(title, {
                 onSuccess: () => {
+                    // Dismiss loading toast
+                    toast.dismiss("create-todo");
+                    
+                    // Show success toast
+                    toast.success("Todo created", {
+                        description: "Your todo has been successfully created"
+                    });
+                    
                     setTitle('');
                     router.push(`/dashboard/todos`);
+                },
+                onError: (error) => {
+                    // Dismiss loading toast
+                    toast.dismiss("create-todo");
+                    
+                    // Show error toast
+                    toast.error("Failed to create todo", {
+                        description: error.message || "An unexpected error occurred"
+                    });
                 }
+            });
+        } else {
+            // Show validation error toast
+            toast.error("Validation error", {
+                description: "Please enter a title for your todo"
             });
         }
     };
@@ -56,12 +85,62 @@ export default function TodoDetailPage() {
     // Update TODO
     const handleUpdate = () => {
         if (todo && validateTitle(editTitle)) {
+            // Show loading toast
+            toast.loading("Updating todo...", {
+                description: "Please wait while we update your todo",
+                id: `update-${todo.id}`
+            });
+            
             updateTodo.mutate({ id: todo.id, title: editTitle }, {
                 onSuccess: () => {
+                    // Dismiss loading toast
+                    toast.dismiss(`update-${todo.id}`);
+                    
+                    // Show success toast
+                    toast.success("Todo updated", {
+                        description: "Your todo has been successfully updated"
+                    });
+                    
                     setIsEdit(false);
                     router.push(`/dashboard/todos`);
+                },
+                onError: (error) => {
+                    // Dismiss loading toast
+                    toast.dismiss(`update-${todo.id}`);
+                    
+                    // Show error toast
+                    toast.error("Failed to update todo", {
+                        description: error.message || "An unexpected error occurred"
+                    });
                 }
             });
+        } else {
+            // Show validation error toast if there's no todo or invalid title
+            toast.error("Validation error", {
+                description: "Please enter a valid title for your todo"
+            });
+        }
+    };
+
+    // Handle navigation with toast feedback
+    const handleBackToList = () => {
+        toast.info("Returning to list", {
+            description: "Navigating back to your todo list"
+        });
+        router.push('/dashboard/todos');
+    };
+
+    // Handle edit mode switch
+    const handleEditModeToggle = () => {
+        if (!isEdit) {
+            toast.info("Editing todo", {
+                description: "You can now edit this todo"
+            });
+            setIsEdit(true);
+        } else {
+            setIsEdit(false);
+            setTitleError('');
+            setEditTitle(todo?.title || '');
         }
     };
 
@@ -110,7 +189,7 @@ export default function TodoDetailPage() {
                 </Button>
                 <Button
                     variant="outline"
-                    onClick={() => router.push('/dashboard/todos')}
+                    onClick={handleBackToList}
                 >
                     Back to List
                 </Button>
@@ -121,7 +200,13 @@ export default function TodoDetailPage() {
     if (!todo) {
         return (
             <Card className="p-6 text-center">
-                TODO not found.
+                <div className="mb-4">TODO not found.</div>
+                <Button 
+                    variant="outline" 
+                    onClick={handleBackToList}
+                >
+                    Back to List
+                </Button>
             </Card>
         );
     }
@@ -162,6 +247,9 @@ export default function TodoDetailPage() {
                                 setIsEdit(false);
                                 setTitleError('');
                                 setEditTitle(todo.title);
+                                toast.info("Edit cancelled", {
+                                    description: "Your changes have been discarded"
+                                });
                             }}
                         >
                             Cancel
@@ -179,7 +267,7 @@ export default function TodoDetailPage() {
             )}
             <Button
                 variant="outline"
-                onClick={() => router.push('/dashboard/todos')}
+                onClick={handleBackToList}
             >
                 Back to List
             </Button>
@@ -187,7 +275,7 @@ export default function TodoDetailPage() {
                 <Button
                     className="ml-2"
                     variant="outline"
-                    onClick={() => setIsEdit(true)}
+                    onClick={handleEditModeToggle}
                 >
                     Edit
                 </Button>

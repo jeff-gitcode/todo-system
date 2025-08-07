@@ -2,92 +2,140 @@ import { test, expect } from '@playwright/test';
 const TEST_USER_EMAIL = 'test1@test.com';
 const TEST_USER_PASSWORD = 'Test01@test';
 
+// Add delay to slow down test execution for better video recording
+const DELAY_MS = 500; // Adjust this value to control the speed (higher = slower)
+
+// Helper function to add delay between actions
+async function delay(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 test.describe('Todo Application Workflow', () => {
   // Login before each test
   test.beforeEach(async ({ page }) => {
     // Navigate to the login page
     await page.goto('/login');
+    await delay(DELAY_MS);
 
     // Check that we're on the login page
     await expect(page.getByText('Sign in to your account')).toBeVisible();
+    await delay(DELAY_MS);
 
     // Fill in login credentials and submit
     await page.getByRole('textbox', { name: 'Email address' }).fill(TEST_USER_EMAIL);
+    await delay(DELAY_MS);
     await page.getByRole('textbox', { name: 'Password' }).fill(TEST_USER_PASSWORD);
+    await delay(DELAY_MS);
     await page.getByRole('button', { name: 'Sign in' }).click();
+    await delay(DELAY_MS);
 
     // Wait for navigation to dashboard after login
     await page.waitForURL('/dashboard');
+    await delay(DELAY_MS);
   });
 
   test('should allow user to create, view, edit, and delete todos', async ({ page }) => {
     // Verify we're on the dashboard
     await expect(page.getByText('TODO List')).toBeVisible();
+    await delay(DELAY_MS);
 
     // Create a new todo
     expect(page.getByRole('button', { name: 'Add TODO' })).toBeVisible();
     await page.getByRole('button', { name: 'Add TODO' }).click();
+    await delay(DELAY_MS);
 
     // Should be redirected to the edit form for a new todo
     await page.waitForURL('/dashboard/todos/*');
+    await delay(DELAY_MS);
 
     // Fill in the todo details
     await expect(page.getByText('Add TODO')).toBeVisible();
+    await delay(DELAY_MS);
     await page.getByPlaceholder('Enter TODO title').fill('Buy groceries');
+    await delay(DELAY_MS);
     await page.getByRole('button', { name: 'Add' }).click();
+    await delay(DELAY_MS);
 
     // Wait for navigation back to the todos list
     await page.waitForURL('/dashboard/todos/*');
+    await delay(DELAY_MS);
 
     // Navigate back to the todo list
-    await expect(page.getByRole('button', { name: 'Back to List' })).toBeVisible();
-    await page.getByRole('button', { name: 'Back to List' }).click();
+    // await expect(page.getByRole('button', { name: 'Back to List' })).toBeVisible();
+    // await delay(DELAY_MS);
+    // await page.getByRole('button', { name: 'Back to List' }).click();
+    // await delay(DELAY_MS);
 
-    await page.waitForURL('/dashboard/todos/*');
+    // await page.waitForURL('/dashboard/todos/*');
+    // await delay(DELAY_MS);
 
     // Verify the todo was added to the list
+    await expect(page.getByText('TODO List')).toBeVisible();
     const todoItem = page.getByText('Buy groceries');
     await expect(todoItem).toBeVisible();
+    await delay(DELAY_MS);
 
     // Create another todo
     await expect(page.getByText('Add TODO')).toBeVisible();
     await page.getByRole('button', { name: 'Add TODO' }).click();
+    await delay(DELAY_MS);
     await page.getByPlaceholder('Enter TODO title').fill('Complete homework');
+    await delay(DELAY_MS);
     await page.getByRole('button', { name: 'Add' }).click();
-    await page.waitForURL('/dashboard/todos/*');
-    await expect(page.getByRole('button', { name: 'Back to List' })).toBeVisible();
-    await page.getByRole('button', { name: 'Back to List' }).click();
+    // await delay(DELAY_MS);
+    // await page.waitForURL('/dashboard/todos/*');
+    // await delay(DELAY_MS);
+    // await expect(page.getByRole('button', { name: 'Back to List' })).toBeVisible();
+    // await delay(DELAY_MS);
+    // await page.getByRole('button', { name: 'Back to List' }).click();
+    // await delay(DELAY_MS);
 
     // Verify both todos exist
     await expect(page.getByRole('heading', { name: 'TODO List' })).toBeVisible();
+    await delay(DELAY_MS);
     await expect(page.getByText('Buy groceries')).toBeVisible();
+    await delay(DELAY_MS);
     await expect(page.getByText('Complete homework')).toBeVisible();
+    await delay(DELAY_MS);
 
     // Edit a todo
     await page.getByRole('listitem')
       .filter({ hasText: 'Buy groceries' })
       .getByRole('button').first().click();
+    await delay(DELAY_MS);
 
     // Update the todo
     await page.getByRole('textbox').clear();
+    await delay(DELAY_MS);
     await page.getByRole('textbox').fill('Buy organic groceries');
+    await delay(DELAY_MS);
     await page.getByRole('button', { name: 'Save' }).click();
-    await page.waitForURL('/dashboard/todos/*');
-    await expect(page.getByRole('button', { name: 'Back to List' })).toBeVisible();
-    await page.getByRole('button', { name: 'Back to List' }).click();
+    await delay(DELAY_MS);
+    // await page.waitForURL('/dashboard/todos/*');
+    // await delay(DELAY_MS);
+    // await expect(page.getByRole('button', { name: 'Back to List' })).toBeVisible();
+    // await delay(DELAY_MS);
+    // await page.getByRole('button', { name: 'Back to List' }).click();
+    // await delay(DELAY_MS);
 
+    await expect(page.getByRole('heading', { name: 'TODO List' })).toBeVisible();
+    await delay(DELAY_MS);
     // Verify the todo was updated
     await expect(page.getByText('Buy organic groceries')).toBeVisible();
+    await delay(DELAY_MS);
 
     // Delete a todo
     await page.getByRole('listitem')
       .filter({ hasText: 'Complete homework' })
       .getByRole('button', { name: 'Delete' })
       .click();
+    await delay(DELAY_MS);
 
     // Verify the todo was deleted
     await expect(page.getByText('Complete homework')).not.toBeVisible();
+    await delay(DELAY_MS);
     await expect(page.getByText('Buy organic groceries')).toBeVisible();
+    await delay(DELAY_MS);
   });
 
   test('should validate empty inputs', async ({ page }) => {

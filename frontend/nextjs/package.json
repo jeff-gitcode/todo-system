@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest --passWithNoTests",
-    "test:e2e": "playwright test",
+    "test:e2e": "npx playwright test",
     "test:e2e:ui": "npx playwright test --ui-host=0.0.0.0 --project=chromium --headed",
     "test:e2e:debug": "playwright test --debug",
     "storybook": "storybook dev -p 6006",

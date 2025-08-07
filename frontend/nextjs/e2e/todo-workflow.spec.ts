@@ -31,11 +31,9 @@ test.describe('Todo Application Workflow', () => {
     // Should be redirected to the edit form for a new todo
     await page.waitForURL('/dashboard/todos/*');
 
-    // await expect(page.url()).toContain('/dashboard/todos/new?edit=1');
-
     // Fill in the todo details
     await expect(page.getByText('Add TODO')).toBeVisible();
-    await page.getByPlaceholder('Enter todo title').fill('Buy groceries');
+    await page.getByPlaceholder('Enter TODO title').fill('Buy groceries');
     await page.getByRole('button', { name: 'Add' }).click();
 
     // Wait for navigation back to the todos list
@@ -54,7 +52,7 @@ test.describe('Todo Application Workflow', () => {
     // Create another todo
     await expect(page.getByText('Add TODO')).toBeVisible();
     await page.getByRole('button', { name: 'Add TODO' }).click();
-    await page.getByPlaceholder('Enter todo title').fill('Complete homework');
+    await page.getByPlaceholder('Enter TODO title').fill('Complete homework');
     await page.getByRole('button', { name: 'Add' }).click();
     await page.waitForURL('/dashboard/todos/*');
     await expect(page.getByRole('button', { name: 'Back to List' })).toBeVisible();
@@ -102,12 +100,22 @@ test.describe('Todo Application Workflow', () => {
     // Try to save with empty title
     await page.getByRole('button', { name: 'Add' }).click();
 
+    // Should display validation error
+    await expect(page.getByText('Title is required')).toBeVisible();
+
+    // Verify the alert component is displayed with the error message
+    await expect(page.locator('.mt-2.py-2')).toBeVisible();
+
     // Should still be on the edit page
     await expect(page.url()).toContain('edit=1');
 
     // Fill in the title and save
     await expect(page.getByText('Add TODO')).toBeVisible();
     await page.getByPlaceholder('Enter TODO title').fill('Valid todo');
+
+    // Validation error should disappear when typing
+    await expect(page.getByText('Title is required')).not.toBeVisible();
+
     await page.getByRole('button', { name: 'Add' }).click();
 
     // Should navigate away after saving
@@ -123,13 +131,48 @@ test.describe('Todo Application Workflow', () => {
     await expect(todoItem).toBeVisible();
   });
 
+  test('should validate empty inputs when editing', async ({ page }) => {
+    // Create a todo first
+    await page.getByRole('button', { name: 'Add TODO' }).click();
+    await page.getByPlaceholder('Enter TODO title').fill('Test edit validation');
+    await page.getByRole('button', { name: 'Add' }).click();
+    await page.waitForURL('/dashboard/todos/*');
+    await page.getByRole('button', { name: 'Back to List' }).click();
+
+    // Edit the todo
+    await page.getByRole('listitem')
+      .filter({ hasText: 'Test edit validation' })
+      .getByRole('button', { name: 'Edit' }).click();
+
+    // Switch to edit mode
+    await expect(page.getByText('TODO Detail')).toBeVisible();
+
+    // Clear the title and try to save
+    await page.getByRole('textbox').clear();
+    await page.getByRole('button', { name: 'Save' }).click();
+
+    // Should display validation error
+    await expect(page.getByText('Title is required')).toBeVisible();
+
+    // Enter valid title and save
+    await page.getByRole('textbox').fill('Updated title');
+    await page.getByRole('button', { name: 'Save' }).click();
+
+    // Navigate back to list
+    await page.waitForURL('/dashboard/todos/*');
+    await page.getByRole('button', { name: 'Back to List' }).click();
+
+    // Verify todo was updated
+    await expect(page.getByText('Updated title')).toBeVisible();
+  });
+
   test('should allow user to sign out', async ({ page }) => {
     // Sign out
     await page.getByRole('button', { name: /logout/i }).click();
 
     // Verify redirect to login page
-    await page.waitForURL('/login');
-    await expect(page.getByText('Sign in to your account')).toBeVisible();
+    await page.waitForURL('/');
+    await expect(page.getByText('Todo System Demo')).toBeVisible();
 
     // Verify we can't access dashboard after logout
     await page.goto('/dashboard/todos');

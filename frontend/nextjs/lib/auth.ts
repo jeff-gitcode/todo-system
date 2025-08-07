@@ -20,5 +20,10 @@ export const auth = betterAuth({
   //     redirect('/dashboard')
   //   },
   // },
+  signOut: {
+    onSuccess: async () => {
+      redirect('/login')
+    }
+  },
   // trustedOrigins: ['http://localhost:3001'],
 })

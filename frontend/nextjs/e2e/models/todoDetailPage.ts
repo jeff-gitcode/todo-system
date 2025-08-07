@@ -11,7 +11,7 @@ export class TodoDetailPage {
   constructor(page: Page) {
     this.page = page;
     this.detailTitle = page.getByText('TODO Detail');
-    this.idField = page.getByText(/ID:\s*[a-f0-9-]{36}/i);
+    this.idField = page.getByText(/ID:\s*[a-zA-Z0-9-]{4,30}/i);
     this.titleField = page.getByText('Title:').locator('..').locator('strong');
     this.editButton = page.getByRole('button', { name: 'Edit' });
     this.backButton = page.getByRole('button', { name: 'Back to List' });

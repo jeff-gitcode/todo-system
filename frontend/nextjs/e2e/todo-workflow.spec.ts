@@ -1,119 +1,138 @@
-// frontend/nextjs/e2e/todo-workflow.spec.ts
 import { test, expect } from '@playwright/test';
-import { TodoPage } from './models/todoPage';
-import { TodoDetailPage } from './models/todoDetailPage';
-import { TodoAddPage } from './models/todoAddPage';
-import { getByRole } from '@testing-library/dom/types/queries';
-import { sign } from 'jsonwebtoken';
-
 const TEST_USER_EMAIL = 'test1@test.com';
 const TEST_USER_PASSWORD = 'Test01@test';
 
-test.describe('Todo Application E2E', () => {
-  test.describe.configure({ mode: 'serial' });
-
-  let todoPage: TodoPage;
-  let todoDetailPage: TodoDetailPage;
-  let todoAddPage: TodoAddPage;
-
-  // Generate a unique todo title for test isolation
-  const uniqueTodoTitle = `E2E Test Todo ${Date.now()}`;
-  let createdTodoId: string;
-
-  // Helper: login using UI and wait for dashboard and Sonner toast
-  async function login(page) {
+test.describe('Todo Application Workflow', () => {
+  // Login before each test
+  test.beforeEach(async ({ page }) => {
+    // Navigate to the login page
     await page.goto('/login');
+
+    // Check that we're on the login page
+    await expect(page.getByText('Sign in to your account')).toBeVisible();
+
+    // Fill in login credentials and submit
     await page.getByRole('textbox', { name: 'Email address' }).fill(TEST_USER_EMAIL);
     await page.getByRole('textbox', { name: 'Password' }).fill(TEST_USER_PASSWORD);
     await page.getByRole('button', { name: 'Sign in' }).click();
 
-    // Wait for Sonner toast (success message)
-    // await expect(page.getByText('Success!')).toBeVisible();
-    // Optionally, also check for the description if needed:
-    // await expect(page.getByText('You have been signed in successfully.')).toBeVisible();
-
-    await expect(page).toHaveURL(/\/dashboard/);
-
-  }
-
-  test.beforeEach(async ({ page }) => {
-    // Perform login using the new better-auth flow
-    await login(page);
-
-    todoPage = new TodoPage(page);
-    todoDetailPage = new TodoDetailPage(page);
-    todoAddPage = new TodoAddPage(page);
+    // Wait for navigation to dashboard after login
+    await page.waitForURL('/dashboard');
   });
 
-  test('should display the todo list page', async () => {
-    // Arrange
-    await todoPage.goto();
+  test('should allow user to create, view, edit, and delete todos', async ({ page }) => {
+    // Verify we're on the dashboard
+    await expect(page.getByText('TODO List')).toBeVisible();
 
-    // Act - page load
+    // Create a new todo
+    expect(page.getByRole('button', { name: 'Add TODO' })).toBeVisible();
+    await page.getByRole('button', { name: 'Add TODO' }).click();
 
-    // Assert
-    await todoPage.expectLoaded();
+    // Should be redirected to the edit form for a new todo
+    await page.waitForURL('/dashboard/todos/*');
+
+    // await expect(page.url()).toContain('/dashboard/todos/new?edit=1');
+
+    // Fill in the todo details
+    await expect(page.getByText('Add TODO')).toBeVisible();
+    await page.getByPlaceholder('Enter todo title').fill('Buy groceries');
+    await page.getByRole('button', { name: 'Add' }).click();
+
+    // Wait for navigation back to the todos list
+    await page.waitForURL('/dashboard/todos/*');
+
+    // Navigate back to the todo list
+    await expect(page.getByRole('button', { name: 'Back to List' })).toBeVisible();
+    await page.getByRole('button', { name: 'Back to List' }).click();
+
+    await page.waitForURL('/dashboard/todos/*');
+
+    // Verify the todo was added to the list
+    const todoItem = page.getByText('Buy groceries');
+    await expect(todoItem).toBeVisible();
+
+    // Create another todo
+    await expect(page.getByText('Add TODO')).toBeVisible();
+    await page.getByRole('button', { name: 'Add TODO' }).click();
+    await page.getByPlaceholder('Enter todo title').fill('Complete homework');
+    await page.getByRole('button', { name: 'Add' }).click();
+    await page.waitForURL('/dashboard/todos/*');
+    await expect(page.getByRole('button', { name: 'Back to List' })).toBeVisible();
+    await page.getByRole('button', { name: 'Back to List' }).click();
+
+    // Verify both todos exist
+    await expect(page.getByRole('heading', { name: 'TODO List' })).toBeVisible();
+    await expect(page.getByText('Buy groceries')).toBeVisible();
+    await expect(page.getByText('Complete homework')).toBeVisible();
+
+    // Edit a todo
+    await page.getByRole('listitem')
+      .filter({ hasText: 'Buy groceries' })
+      .getByRole('button').first().click();
+
+    // Update the todo
+    await page.getByRole('textbox').clear();
+    await page.getByRole('textbox').fill('Buy organic groceries');
+    await page.getByRole('button', { name: 'Save' }).click();
+    await page.waitForURL('/dashboard/todos/*');
+    await expect(page.getByRole('button', { name: 'Back to List' })).toBeVisible();
+    await page.getByRole('button', { name: 'Back to List' }).click();
+
+    // Verify the todo was updated
+    await expect(page.getByText('Buy organic groceries')).toBeVisible();
+
+    // Delete a todo
+    await page.getByRole('listitem')
+      .filter({ hasText: 'Complete homework' })
+      .getByRole('button', { name: 'Delete' })
+      .click();
+
+    // Verify the todo was deleted
+    await expect(page.getByText('Complete homework')).not.toBeVisible();
+    await expect(page.getByText('Buy organic groceries')).toBeVisible();
   });
 
-  test('should allow adding a new todo', async ({ page }) => {
-    // Arrange
-    await todoPage.goto();
-    await todoPage.addTodoButton.click();
+  test('should validate empty inputs', async ({ page }) => {
+    // Create a new todo
+    await expect(page.getByText('Add TODO')).toBeVisible();
+    await page.getByRole('button', { name: 'Add TODO' }).click();
 
-    // Act
-    await todoAddPage.expectLoaded();
-    await todoAddPage.addTodo(uniqueTodoTitle);
+    await page.waitForURL('/dashboard/todos/*');
 
-    // Assert
-    await todoDetailPage.expectLoaded();
-    await todoDetailPage.expectTitle(uniqueTodoTitle);
+    // Try to save with empty title
+    await page.getByRole('button', { name: 'Add' }).click();
 
-    // Store the ID for future tests
-    const idText = await todoDetailPage.idField.textContent();
-    createdTodoId = idText?.split('ID: ')[1].trim() || '';
-    expect(createdTodoId).toBeTruthy();
+    // Should still be on the edit page
+    await expect(page.url()).toContain('edit=1');
+
+    // Fill in the title and save
+    await expect(page.getByText('Add TODO')).toBeVisible();
+    await page.getByPlaceholder('Enter TODO title').fill('Valid todo');
+    await page.getByRole('button', { name: 'Add' }).click();
+
+    // Should navigate away after saving
+    await page.waitForURL('/dashboard/todos/*');
+
+    await expect(page.getByRole('button', { name: 'Back to List' })).toBeVisible();
+    await page.getByRole('button', { name: 'Back to List' }).click();
+
+    await page.waitForURL('/dashboard/todos/*');
+
+    // Verify the todo was added to the list
+    const todoItem = page.getByText('Valid todo');
+    await expect(todoItem).toBeVisible();
   });
 
-  test('should navigate back to list and show the new todo', async () => {
-    // Arrange
-    await todoDetailPage.goto(createdTodoId);
+  test('should allow user to sign out', async ({ page }) => {
+    // Sign out
+    await page.getByRole('button', { name: /logout/i }).click();
 
-    // Act
-    await todoDetailPage.clickBackToList();
+    // Verify redirect to login page
+    await page.waitForURL('/login');
+    await expect(page.getByText('Sign in to your account')).toBeVisible();
 
-    // Assert
-    await todoPage.expectLoaded();
-    await todoPage.expectTodoExists(uniqueTodoTitle);
-  });
-
-  test('should edit a todo', async () => {
-    // Arrange
-    await todoPage.goto();
-    await todoPage.clickEditTodo(uniqueTodoTitle);
-
-    // Act
-    const updatedTitle = `${uniqueTodoTitle} - Updated`;
-    await todoDetailPage.updateTitle(updatedTitle);
-
-    // Assert
-    await todoDetailPage.expectLoaded();
-    await todoDetailPage.expectTitle(updatedTitle);
-
-    // Return to list and verify update is visible
-    await todoDetailPage.clickBackToList();
-    await todoPage.expectTodoExists(updatedTitle);
-  });
-
-  test('should delete a todo', async ({ page }) => {
-    // Arrange
-    await todoPage.goto();
-    const updatedTitle = `${uniqueTodoTitle} - Updated`;
-
-    // Act
-    await todoPage.clickDeleteTodo(updatedTitle);
-
-    // Assert - wait for deletion to complete
-    await page.waitForTimeout(500); // Short wait for UI update
-    await todoPage.expectTodoNotExists(updatedTitle);
+    // Verify we can't access dashboard after logout
+    await page.goto('/dashboard/todos');
+    await expect(page.url()).toContain('/login');
   });
 });

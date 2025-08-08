@@ -12,6 +12,7 @@ using TodoSystem.Application.Todos.Queries;
 using Microsoft.Extensions.DependencyInjection;
 using TodoSystem.API.Middleware;
 using Microsoft.AspNetCore.Mvc;
+using TodoSystem.Application.Auth.Commands;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -97,17 +98,35 @@ app.MapPost("/api/v1/todos", async (CreateTodoCommand command, IMediator mediato
 {
     var result = await mediator.Send(command);
     return Results.Created($"/api/v1/todos/{result.Id}", result);
-});
-// .RequireAuthorization();
+}).RequireAuthorization();
 
 app.MapGet("/api/v1/todos", async (IMediator mediator) =>
 {
     var result = await mediator.Send(new GetTodosQuery());
     return Results.Ok(result);
-});
-// .RequireAuthorization();
+}).RequireAuthorization();
 
-// ...other endpoints...
+// Authentication endpoint
+app.MapPost("/api/v1/auth/login", async (LoginCommand command, IMediator mediator) =>
+{
+    try
+    {
+        var result = await mediator.Send(command);
+        return Results.Ok(result);
+    }
+    catch (UnauthorizedAccessException ex)
+    {
+        return Results.Unauthorized();
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(
+            title: "An error occurred during authentication",
+            statusCode: 500,
+            detail: ex.Message
+        );
+    }
+});
 
 app.MapGet("/", () => "Hello World!");
 

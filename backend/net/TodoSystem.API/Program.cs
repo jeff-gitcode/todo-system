@@ -12,12 +12,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using TodoSystem.API.Middleware;
+using TodoSystem.API;
 using Microsoft.AspNetCore.Mvc;
-using TodoSystem.Application.Auth.Commands;
-using Microsoft.AspNetCore.Http;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
-using OpenTelemetry.Metrics;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(new CompactJsonFormatter()) // Structured JSON logs
@@ -44,10 +40,10 @@ builder.Services.AddDbContext<TodoDbContext>(options =>
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// // MediatR
+// MediatR
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateTodoCommand).Assembly));
 
-// // JWT Authentication
+// JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -63,11 +59,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// // Authorization
+// Authorization
 builder.Services.AddAuthorization();
 
-
-// // Health Checks
+// Health Checks
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<TodoDbContext>();
 
@@ -88,7 +83,7 @@ builder.Logging.AddOpenTelemetry(options =>
     // You can add resource attributes or exporters here if needed
 });
 
-//builder.Services.AddOpenTelemetry()
+// builder.Services.AddOpenTelemetry()
 //    .ConfigureResource(resource => resource
 //        .AddService("TodoSystem.API"))
 //    .WithTracing(tracing => tracing
@@ -125,89 +120,10 @@ app.UseAuthorization();
 app.UseHttpsRedirection();
 app.MapHealthChecks("/health");
 
-// Minimal API endpoints
-app.MapPost("/api/v1/todos", async (CreateTodoCommand command, IMediator mediator) =>
-{
-    var result = await mediator.Send(command);
-    return Results.Created($"/api/v1/todos/{result.Id}", result);
-}).RequireAuthorization();
-
-app.MapGet("/api/v1/todos", async (IMediator mediator) =>
-{
-    var result = await mediator.Send(new GetTodosQuery());
-    return Results.Ok(result);
-}).RequireAuthorization();
-
-// Authentication endpoint
-app.MapPost("/api/v1/auth/login", async (LoginCommand command, IMediator mediator) =>
-{
-    try
-    {
-        var result = await mediator.Send(command);
-        return Results.Ok(result);
-    }
-    catch (UnauthorizedAccessException ex)
-    {
-        return Results.Unauthorized();
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem(
-            title: "An error occurred during authentication",
-            statusCode: 500,
-            detail: ex.Message
-        );
-    }
-});
-
-// Registration endpoint
-app.MapPost("/api/v1/auth/register", async (RegisterCommand command, IMediator mediator) =>
-{
-    try
-    {
-        var result = await mediator.Send(command);
-
-        if (!result.Success)
-        {
-            return Results.BadRequest(new { message = result.Message });
-        }
-
-        return Results.Created($"/api/v1/auth/users/{result.Email}", result);
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem(
-            title: "An error occurred during registration",
-            statusCode: 500,
-            detail: ex.Message
-        );
-    }
-});
-
-// Get todo by id
-app.MapGet("/api/v1/todos/{id:guid}", async (Guid id, IMediator mediator) =>
-{
-    var result = await mediator.Send(new GetTodoByIdQuery(id));
-    return result is not null ? Results.Ok(result) : Results.NotFound();
-}).RequireAuthorization();
-
-// Update todo
-app.MapPut("/api/v1/todos/{id:guid}", async (Guid id, UpdateTodoCommand command, IMediator mediator) =>
-{
-    if (id != command.Id)
-        return Results.BadRequest(new { message = "ID in URL and body do not match." });
-
-    var result = await mediator.Send(command);
-    return Results.Ok(result);
-}).RequireAuthorization();
-
-// Delete todo
-app.MapDelete("/api/v1/todos/{id:guid}", async (Guid id, IMediator mediator) =>
-{
-    await mediator.Send(new DeleteTodoCommand { Id = id });
-    return Results.NoContent();
-}).RequireAuthorization();
-
-app.MapGet("/", () => "Hello World!");
+// Use extension method to map all feature endpoints
+app.MapFeatureEndpoints();
 
 app.Run();
+
+// In Program.cs
+public partial class Program { } // This makes the auto-generated Program class public

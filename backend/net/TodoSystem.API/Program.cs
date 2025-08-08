@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using Serilog.Formatting.Compact;
 using TodoSystem.Infrastructure.Data;
 using TodoSystem.Infrastructure;
 using TodoSystem.Application;
@@ -14,17 +15,22 @@ using TodoSystem.API.Middleware;
 using Microsoft.AspNetCore.Mvc;
 using TodoSystem.Application.Auth.Commands;
 using Microsoft.AspNetCore.Http;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using OpenTelemetry.Metrics;
 
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
+    .WriteTo.Console(new CompactJsonFormatter()) // Structured JSON logs
     .CreateBootstrapLogger();
 
 Log.Information("Starting up");
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Logging
-builder.Host.UseSerilog();
+builder.AddServiceDefaults();
+
+// Logging, should disable serilog in aspire for structured logging
+// builder.Host.UseSerilog();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -74,7 +80,32 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 // Add ProblemDetails for consistent error responses
 builder.Services.AddProblemDetails();
 
+// Add OpenTelemetry logging
+builder.Logging.AddOpenTelemetry(options =>
+{
+    options.IncludeFormattedMessage = true;
+    options.IncludeScopes = true;
+    // You can add resource attributes or exporters here if needed
+});
+
+//builder.Services.AddOpenTelemetry()
+//    .ConfigureResource(resource => resource
+//        .AddService("TodoSystem.API"))
+//    .WithTracing(tracing => tracing
+//        .AddAspNetCoreInstrumentation()
+//        .AddHttpClientInstrumentation()
+//        .AddOtlpExporter() // Exports to OTLP endpoint if OTEL_EXPORTER_OTLP_ENDPOINT is set
+//    )
+//    .WithMetrics(metrics => metrics
+//        .AddAspNetCoreInstrumentation()
+//        .AddHttpClientInstrumentation()
+//        .AddRuntimeInstrumentation()
+//        .AddOtlpExporter()
+//    );
+
 var app = builder.Build();
+
+app.MapDefaultEndpoints();
 
 
 if (app.Environment.IsDevelopment())
@@ -85,8 +116,8 @@ if (app.Environment.IsDevelopment())
 
 // Add the custom exception handling middleware
 app.UseCustomExceptionHandler();
-
-app.UseSerilogRequestLogging();
+app.UseRequestResponseLogging(); // <-- Add this line
+//app.UseSerilogRequestLogging();
 app.UseAuthentication();
 app.UseAuthorization();
 

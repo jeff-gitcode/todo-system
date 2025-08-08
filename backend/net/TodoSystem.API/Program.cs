@@ -4,15 +4,16 @@ using TodoSystem.Infrastructure.Data;
 using TodoSystem.Infrastructure;
 using TodoSystem.Application;
 using TodoSystem.Application.Todos.Commands;
+using TodoSystem.Application.Todos.Queries;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using MediatR;
-using TodoSystem.Application.Todos.Queries;
 using Microsoft.Extensions.DependencyInjection;
 using TodoSystem.API.Middleware;
 using Microsoft.AspNetCore.Mvc;
 using TodoSystem.Application.Auth.Commands;
+using Microsoft.AspNetCore.Http;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -151,6 +152,30 @@ app.MapPost("/api/v1/auth/register", async (RegisterCommand command, IMediator m
         );
     }
 });
+
+// Get todo by id
+app.MapGet("/api/v1/todos/{id:guid}", async (Guid id, IMediator mediator) =>
+{
+    var result = await mediator.Send(new GetTodoByIdQuery(id));
+    return result is not null ? Results.Ok(result) : Results.NotFound();
+}).RequireAuthorization();
+
+// Update todo
+app.MapPut("/api/v1/todos/{id:guid}", async (Guid id, UpdateTodoCommand command, IMediator mediator) =>
+{
+    if (id != command.Id)
+        return Results.BadRequest(new { message = "ID in URL and body do not match." });
+
+    var result = await mediator.Send(command);
+    return Results.Ok(result);
+}).RequireAuthorization();
+
+// Delete todo
+app.MapDelete("/api/v1/todos/{id:guid}", async (Guid id, IMediator mediator) =>
+{
+    await mediator.Send(new DeleteTodoCommand { Id = id });
+    return Results.NoContent();
+}).RequireAuthorization();
 
 app.MapGet("/", () => "Hello World!");
 

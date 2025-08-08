@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TodoSystem.Domain.Tests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TodoSystem.Infrastructure.Tests", "TodoSystem.Infrastructure.Tests\TodoSystem.Infrastructure.Tests.csproj", "{A84DE9D8-B67A-46F9-8D71-243C2B5A4426}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TodoSystem.AppHost", "TodoSystem.AppHost\TodoSystem.AppHost.csproj", "{B7D72103-4D51-4441-9265-53D5A55FEEE6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,5 +62,9 @@ Global
 		{A84DE9D8-B67A-46F9-8D71-243C2B5A4426}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A84DE9D8-B67A-46F9-8D71-243C2B5A4426}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A84DE9D8-B67A-46F9-8D71-243C2B5A4426}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7D72103-4D51-4441-9265-53D5A55FEEE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7D72103-4D51-4441-9265-53D5A55FEEE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7D72103-4D51-4441-9265-53D5A55FEEE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7D72103-4D51-4441-9265-53D5A55FEEE6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using MediatR;
 using TodoSystem.Application.Todos.Queries;
 using Microsoft.Extensions.DependencyInjection;
+using TodoSystem.API.Middleware;
+using Microsoft.AspNetCore.Mvc;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -61,6 +63,15 @@ builder.Services.AddAuthorization();
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<TodoDbContext>();
 
+// Configure ProblemDetails for consistent error responses
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.SuppressModelStateInvalidFilter = true; // We'll handle this ourselves
+});
+
+// Add ProblemDetails for consistent error responses
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
 
 
@@ -69,6 +80,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Add the custom exception handling middleware
+app.UseCustomExceptionHandler();
 
 app.UseSerilogRequestLogging();
 app.UseAuthentication();

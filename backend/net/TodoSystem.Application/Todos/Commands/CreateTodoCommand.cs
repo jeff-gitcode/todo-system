@@ -5,6 +5,7 @@ using TodoSystem.Domain.Repositories;
 using AutoMapper;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentValidation;
 
 namespace TodoSystem.Application.Todos.Commands
 {
@@ -35,6 +36,16 @@ namespace TodoSystem.Application.Todos.Commands
             await _todoRepository.AddAsync(todo);
 
             return _mapper.Map<TodoDto>(todo);
+        }
+    }
+
+    public class CreateTodoCommandValidator : AbstractValidator<CreateTodoCommand>
+    {
+        public CreateTodoCommandValidator()
+        {
+            RuleFor(x => x.Title)
+                .NotEmpty().WithMessage("Title is required")
+                .MaximumLength(200).WithMessage("Title must not exceed 200 characters");
         }
     }
 }

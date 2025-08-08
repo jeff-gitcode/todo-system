@@ -16,7 +16,7 @@ public static class DependencyInjection
         services.AddDbContext<TodoDbContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
         services.AddScoped<ITodoRepository, TodoRepository>();
-
+        services.AddScoped<IUserRepository, UserRepository>();
         return services;
     }
 }

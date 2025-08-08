@@ -1,14 +1,25 @@
 @HostAddress = http://localhost:5260
 @contentType = application/json
 
+### Register a new user
+# @name register
+POST {{HostAddress}}/api/v1/auth/register
+Content-Type: {{contentType}}
+
+{
+  "email": "user@example.com",
+  "password": "Password123!",
+  "displayName": "Test User"
+}
+
 ### Login to get JWT token
 # @name login
 POST {{HostAddress}}/api/v1/auth/login
 Content-Type: {{contentType}}
 
 {
-  "email": "admin@example.com",
-  "password": "admin123"
+  "email": "user@example.com",
+  "password": "Password123!"
 }
 
 ### Store JWT token from login response

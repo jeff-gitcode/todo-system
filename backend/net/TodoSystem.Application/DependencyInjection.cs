@@ -5,6 +5,7 @@ using System.Reflection;
 using TodoSystem.Application.Behaviors;
 using MediatR;
 using FluentValidation;
+using TodoSystem.Application.Common.Services;
 
 namespace TodoSystem.Application;
 
@@ -14,6 +15,7 @@ public static class DependencyInjection
     {
         // Register application services here, for example:
         // services.AddScoped<IMyService, MyService>();
+        services.AddScoped<IPasswordHasher, PasswordHasher>();
 
         // Use this for older AutoMapper versions
         services.AddAutoMapper(config =>

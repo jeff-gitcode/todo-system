@@ -128,6 +128,30 @@ app.MapPost("/api/v1/auth/login", async (LoginCommand command, IMediator mediato
     }
 });
 
+// Registration endpoint
+app.MapPost("/api/v1/auth/register", async (RegisterCommand command, IMediator mediator) =>
+{
+    try
+    {
+        var result = await mediator.Send(command);
+
+        if (!result.Success)
+        {
+            return Results.BadRequest(new { message = result.Message });
+        }
+
+        return Results.Created($"/api/v1/auth/users/{result.Email}", result);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(
+            title: "An error occurred during registration",
+            statusCode: 500,
+            detail: ex.Message
+        );
+    }
+});
+
 app.MapGet("/", () => "Hello World!");
 
 app.Run();

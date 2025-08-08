@@ -9,6 +9,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentValidation;
+using TodoSystem.Domain.Repositories;
+using TodoSystem.Application.Common.Services;
 
 namespace TodoSystem.Application.Auth.Commands
 {
@@ -44,59 +46,81 @@ namespace TodoSystem.Application.Auth.Commands
     public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResponse>
     {
         private readonly IConfiguration _configuration;
+        private readonly IUserRepository _userRepository;
+        private readonly IPasswordHasher _passwordHasher;
 
-        // In a real application, you would inject your user repository or service here
-        // private readonly IUserRepository _userRepository;
-
-        public LoginCommandHandler(IConfiguration configuration)
+        public LoginCommandHandler(
+            IConfiguration configuration,
+            IUserRepository userRepository,
+            IPasswordHasher passwordHasher)
         {
             _configuration = configuration;
+            _userRepository = userRepository;
+            _passwordHasher = passwordHasher;
         }
 
         public async Task<LoginResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
-            // TODO: Replace this with actual user authentication from your database
-            // In a real app, you would verify credentials against your database
-            // For demo purposes, we'll accept a simple hardcoded credential
-            if (request.Email != "admin@example.com" || request.Password != "admin123")
+            try
             {
+                // Retrieve user from database
+                var user = await _userRepository.GetByEmailAsync(request.Email);
+
+                // Verify password
+                if (!_passwordHasher.VerifyPassword(request.Password, user.PasswordHash))
+                {
+                    throw new UnauthorizedAccessException("Invalid email or password");
+                }
+
+                // Create claims for the token
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(ClaimTypes.Name, user.DisplayName),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(ClaimTypes.Role, "User"),
+                    new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                };
+
+                // Get the JWT settings from configuration
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+                    _configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured")));
+                var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+                var expiry = DateTime.UtcNow.AddHours(1);
+
+                // Create the JWT token
+                var token = new JwtSecurityToken(
+                    issuer: _configuration["Jwt:Issuer"],
+                    audience: _configuration["Jwt:Audience"],
+                    claims: claims,
+                    expires: expiry,
+                    signingCredentials: creds
+                );
+
+                // Generate refresh token
+                string refreshToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+
+                // Update user with refresh token
+                user.RefreshToken = refreshToken;
+                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+                await _userRepository.UpdateAsync(user);
+
+                // Return the token and related information
+                return new LoginResponse
+                {
+                    Token = new JwtSecurityTokenHandler().WriteToken(token),
+                    Email = user.Email,
+                    DisplayName = user.DisplayName,
+                    Expiration = ((DateTimeOffset)expiry).ToUnixTimeSeconds(),
+                    RefreshToken = refreshToken
+                };
+            }
+            catch (KeyNotFoundException)
+            {
+                // Don't reveal that the user doesn't exist
                 throw new UnauthorizedAccessException("Invalid email or password");
             }
-
-            // Create claims for the token
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Email, request.Email),
-                new Claim(ClaimTypes.Name, "Admin User"), // In real app, get from user profile
-                new Claim(ClaimTypes.Role, "User"),
-                new Claim(JwtRegisteredClaimNames.Sub, request.Email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
-
-            // Get the JWT settings from configuration
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-                _configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured")));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expiry = DateTime.Now.AddHours(1);
-
-            // Create the JWT token
-            var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                claims: claims,
-                expires: expiry,
-                signingCredentials: creds
-            );
-
-            // Return the token and related information
-            return new LoginResponse
-            {
-                Token = new JwtSecurityTokenHandler().WriteToken(token),
-                Email = request.Email,
-                DisplayName = "Admin User", // In real app, get from user profile
-                Expiration = ((DateTimeOffset)expiry).ToUnixTimeSeconds(),
-                RefreshToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray()) // Simple refresh token for demo
-            };
         }
     }
 }

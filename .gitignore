@@ -29,34 +29,94 @@ backend/java/.mvn/
 backend/java/logs/
 backend/java/*.log
 
-# ASP.NET Core / .NET
-backend/net/bin/
-backend/net/obj/
-backend/net/*.user
-backend/net/*.suo
-backend/net/*.vspscc
-backend/net/*.vssscc
-backend/net/.vs/
-backend/net/TestResults/
-backend/net/*.dbmdl
-backend/net/*.log
-backend/net/.vscode/
-backend/net/.DS_Store
-backend/net/*.swp
-backend/net/*.pidb
-backend/net/*.userprefs
-backend/net/*.sln.docstates
-# NuGet packages
-backend/net/packages/
-backend/net/*.nupkg
-# Build output
+# ASP.NET Core / .NET - All projects in backend/net
+backend/net/**/bin/
+backend/net/**/obj/
 backend/net/**/*.dll
 backend/net/**/*.exe
 backend/net/**/*.pdb
 backend/net/**/*.cache
-backend/net/**/*.config
-backend/net/**/*.ide
-instructions/
+backend/net/**/*.user
+backend/net/**/*.suo
+backend/net/**/*.vspscc
+backend/net/**/*.vssscc
+backend/net/**/.vs/
+backend/net/**/TestResults/
+backend/net/**/*.dbmdl
+backend/net/**/*.log
+backend/net/**/.vscode/
+backend/net/**/.DS_Store
+backend/net/**/*.swp
+backend/net/**/*.pidb
+backend/net/**/*.userprefs
+backend/net/**/*.sln.docstates
+backend/net/**/packages/
+backend/net/**/*.nupkg
+backend/net/**/*.rsuser
+backend/net/**/.localhistory/
+backend/net/**/healthchecksdb
+backend/net/**/MigrationBackup/
+backend/net/**/*.tmp
+backend/net/**/*.tmp_proj
+backend/net/**/*_wpftmp.csproj
+backend/net/**/*.vsidx
+backend/net/**/*.ncb
+backend/net/**/*.sdf
+backend/net/**/*.opensdf
+backend/net/**/*.cachefile
+backend/net/**/*.VC.db
+backend/net/**/*.VC.VC.opendb
 
+# .NET specific - additional patterns for all projects
+backend/net/**/*.ilk
+backend/net/**/*.meta
+backend/net/**/*.obj
+backend/net/**/*.iobj
+backend/net/**/*.ipdb
+backend/net/**/*.pgc
+backend/net/**/*.pgd
+backend/net/**/*.rsp
+backend/net/**/*.sbr
+backend/net/**/*.tlb
+backend/net/**/*.tli
+backend/net/**/*.tlh
+backend/net/**/*.vspscc
+backend/net/**/*.vssscc
+backend/net/**/.builds
+backend/net/**/*.svclog
+backend/net/**/*.scc
+backend/net/**/*.aps
+backend/net/**/*.opendb
+backend/net/**/*.opensdf
+backend/net/**/*.cachefile
+
+# Entity Framework migrations (if you want to ignore them)
+# backend/net/**/Migrations/
+
+# User secrets and environment files
+backend/net/**/*.secrets.json
+backend/net/**/.env
+backend/net/**/.env.local
+backend/net/**/.env.development
+backend/net/**/.env.production
+
+# Test coverage reports
+backend/net/**/coverage/
+backend/net/**/*.coverage
+backend/net/**/*.coveragexml
+backend/net/**/coverage*.json
+backend/net/**/coverage*.xml
+backend/net/**/coverage*.info
+
+# JetBrains Rider
+backend/net/**/.idea/
+backend/net/**/*.sln.iml
+
+# Global patterns
+instructions/
 *storybook.log
 storybook
+*.DS_Store
+Thumbs.db
+*.tmp
+*.temp

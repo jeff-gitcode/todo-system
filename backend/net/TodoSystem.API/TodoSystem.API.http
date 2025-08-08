@@ -1,0 +1,37 @@
+@HostAddress = http://localhost:5260
+@contentType = application/json
+
+### Get all todos
+GET {{HostAddress}}/api/v1/todos
+Accept: {{contentType}}
+
+### Get todos with paging and filtering
+GET {{HostAddress}}/api/v1/todos?page=1&pageSize=10&filter=important&sort=dueDate
+Accept: {{contentType}}
+
+### Get a specific todo by ID
+GET {{HostAddress}}/api/v1/todos/3fa85f64-5717-4562-b3fc-2c963f66afa6
+Accept: {{contentType}}
+
+### Create a new todo
+POST {{HostAddress}}/api/v1/todos
+Content-Type: {{contentType}}
+
+{
+  "title": "Complete project documentation"
+}
+
+### Update a todo
+PUT {{HostAddress}}/api/v1/todos/986f90a3-4ee1-4fcd-93d6-86c1b464ce26
+Content-Type: {{contentType}}
+
+{
+  "title": "Updated todo title"
+}
+
+### Complete a todo
+PATCH {{HostAddress}}/api/v1/todos/3fa85f64-5717-4562-b3fc-2c963f66afa6/complete
+Content-Type: {{contentType}}
+
+### Delete a todo
+DELETE {{HostAddress}}/api/v1/todos/3fa85f64-5717-4562-b3fc-2c963f66afa6

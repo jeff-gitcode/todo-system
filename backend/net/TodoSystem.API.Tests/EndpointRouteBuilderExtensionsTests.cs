@@ -97,7 +97,12 @@ namespace TodoSystem.API.Tests
             var context = new DefaultHttpContext();
             context.Request.Method = "GET";
             context.Request.Path = $"/api/v1/todos/{todoId}";
-            context.Request.RouteValues["id"] = todoId;
+
+            // Setup route values correctly - the key issue is here
+            var routeValues = new RouteValueDictionary();
+            routeValues["id"] = todoId.ToString(); // Convert Guid to string to avoid casting issues
+            context.Request.RouteValues = routeValues;
+
             context.RequestServices = builder.ServiceProvider;
 
             // Act
@@ -123,7 +128,12 @@ namespace TodoSystem.API.Tests
             var context = new DefaultHttpContext();
             context.Request.Method = "GET";
             context.Request.Path = $"/api/v1/todos/{todoId}";
-            context.Request.RouteValues["id"] = todoId;
+
+            // Setup route values correctly - using RouteValueDictionary and string conversion
+            var routeValues = new RouteValueDictionary();
+            routeValues["id"] = todoId.ToString(); // Convert Guid to string to avoid casting issues
+            context.Request.RouteValues = routeValues;
+
             context.RequestServices = builder.ServiceProvider;
 
             // Act
@@ -150,9 +160,15 @@ namespace TodoSystem.API.Tests
             var context = new DefaultHttpContext();
             context.Request.Method = "PUT";
             context.Request.Path = $"/api/v1/todos/{todoId}";
-            context.Request.RouteValues["id"] = todoId;
+
+            // Setup route values correctly
+            var routeValues = new RouteValueDictionary();
+            routeValues["id"] = todoId.ToString(); // Convert Guid to string to avoid casting issues
+            context.Request.RouteValues = routeValues;
+
             context.RequestServices = builder.ServiceProvider;
             context.Request.Body = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new UpdateTodoCommand { Id = todoId, Title = "Updated" })));
+            context.Request.ContentType = "application/json"; // Add content type header
 
             // Act
             var endpoint = builder.DataSources.First().Endpoints[3];
@@ -177,9 +193,15 @@ namespace TodoSystem.API.Tests
             var context = new DefaultHttpContext();
             context.Request.Method = "PUT";
             context.Request.Path = $"/api/v1/todos/{todoId}";
-            context.Request.RouteValues["id"] = todoId;
+
+            // Setup route values correctly
+            var routeValues = new RouteValueDictionary();
+            routeValues["id"] = todoId.ToString(); // Convert Guid to string to avoid casting issues
+            context.Request.RouteValues = routeValues;
+
             context.RequestServices = builder.ServiceProvider;
             context.Request.Body = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new UpdateTodoCommand { Id = otherId, Title = "Updated" })));
+            context.Request.ContentType = "application/json"; // Add content type header
 
             // Act
             var endpoint = builder.DataSources.First().Endpoints[3];
@@ -204,7 +226,12 @@ namespace TodoSystem.API.Tests
             var context = new DefaultHttpContext();
             context.Request.Method = "DELETE";
             context.Request.Path = $"/api/v1/todos/{todoId}";
-            context.Request.RouteValues["id"] = todoId;
+
+            // Setup route values correctly
+            var routeValues = new RouteValueDictionary();
+            routeValues["id"] = todoId.ToString(); // Convert Guid to string to avoid casting issues
+            context.Request.RouteValues = routeValues;
+
             context.RequestServices = builder.ServiceProvider;
 
             // Act

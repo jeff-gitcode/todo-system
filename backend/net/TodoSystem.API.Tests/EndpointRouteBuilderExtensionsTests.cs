@@ -167,8 +167,17 @@ namespace TodoSystem.API.Tests
             context.Request.RouteValues = routeValues;
 
             context.RequestServices = builder.ServiceProvider;
-            context.Request.Body = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new UpdateTodoCommand { Id = todoId, Title = "Updated" })));
-            context.Request.ContentType = "application/json"; // Add content type header
+
+            // Create the update command with matching ID
+            var updateCommand = new UpdateTodoCommand { Id = todoId, Title = "Updated" };
+            var commandJson = JsonSerializer.Serialize(updateCommand);
+            var requestBody = System.Text.Encoding.UTF8.GetBytes(commandJson);
+
+            // Set up the request body stream properly
+            context.Request.Body = new MemoryStream(requestBody);
+            context.Request.ContentLength = requestBody.Length;
+            context.Request.ContentType = "application/json";
+            context.Request.Headers["Content-Type"] = "application/json";
 
             // Act
             var endpoint = builder.DataSources.First().Endpoints[3];
@@ -200,8 +209,17 @@ namespace TodoSystem.API.Tests
             context.Request.RouteValues = routeValues;
 
             context.RequestServices = builder.ServiceProvider;
-            context.Request.Body = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new UpdateTodoCommand { Id = otherId, Title = "Updated" })));
-            context.Request.ContentType = "application/json"; // Add content type header
+
+            // Create the update command with mismatched ID
+            var updateCommand = new UpdateTodoCommand { Id = otherId, Title = "Updated" };
+            var commandJson = JsonSerializer.Serialize(updateCommand);
+            var requestBody = System.Text.Encoding.UTF8.GetBytes(commandJson);
+
+            // Set up the request body stream properly
+            context.Request.Body = new MemoryStream(requestBody);
+            context.Request.ContentLength = requestBody.Length;
+            context.Request.ContentType = "application/json";
+            context.Request.Headers["Content-Type"] = "application/json";
 
             // Act
             var endpoint = builder.DataSources.First().Endpoints[3];

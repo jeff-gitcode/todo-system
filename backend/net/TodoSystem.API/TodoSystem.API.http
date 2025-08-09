@@ -66,3 +66,36 @@ Authorization: Bearer {{authToken}}
 ### Delete a todo (authenticated)
 DELETE {{HostAddress}}/api/v1/todos/3fa85f64-5717-4562-b3fc-2c963f66afa6
 Authorization: Bearer {{authToken}}
+
+### Get all external todos (authenticated)
+GET {{HostAddress}}/api/v1/externaltodos
+Accept: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+### Get an external todo by ID (authenticated)
+GET {{HostAddress}}/api/v1/externaltodos/1
+Accept: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+### Create a new external todo (authenticated)
+POST {{HostAddress}}/api/v1/externaltodos
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "title": "External todo from JSONPlaceholder"
+}
+
+### Update an external todo (authenticated)
+PUT {{HostAddress}}/api/v1/externaltodos/1
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "externalId": 1,
+  "title": "Updated external todo title"
+}
+
+### Delete an external todo (authenticated)
+DELETE {{HostAddress}}/api/v1/externaltodos/1
+Authorization: Bearer {{authToken}}

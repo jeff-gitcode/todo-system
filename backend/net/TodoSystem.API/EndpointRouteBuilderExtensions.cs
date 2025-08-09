@@ -10,6 +10,8 @@ public static class EndpointRouteBuilderExtensions
     {
         TodoEndpoints.Map(app);
         AuthEndpoints.Map(app);
+        ExternalTodoEndpoints.Map(app);
+
         return app;
     }
 }
@@ -103,6 +105,50 @@ public class TodoEndpoints
         {
             await mediator.Send(new DeleteTodoCommand { Id = id });
             return Results.NoContent();
+        }).RequireAuthorization();
+    }
+}
+
+public class ExternalTodoEndpoints
+{
+    public static void Map(IEndpointRouteBuilder app)
+    {
+        var group = app.MapGroup("/api/v1/externaltodos");
+
+        // ... existing local todo endpoints ...
+
+        // External todos endpoints
+        group.MapGet("/", async (IMediator mediator) =>
+        {
+            var result = await mediator.Send(new GetExternalTodosQuery());
+            return Results.Ok(result);
+        }).RequireAuthorization();
+
+        group.MapGet("/{id:int}", async (int id, IMediator mediator) =>
+        {
+            var result = await mediator.Send(new GetExternalTodoByIdQuery(id));
+            return result != null ? Results.Ok(result) : Results.NotFound();
+        }).RequireAuthorization();
+
+        group.MapPost("/", async ([FromBody] CreateExternalTodoCommand command, IMediator mediator) =>
+        {
+            var result = await mediator.Send(command);
+            return Results.Created($"/api/v1/todos/external", result);
+        }).RequireAuthorization();
+
+        group.MapPut("/{id:int}", async (int id, [FromBody] UpdateExternalTodoCommand command, IMediator mediator) =>
+        {
+            if (id != command.ExternalId)
+                return Results.BadRequest(new { message = "ID in URL and body do not match." });
+
+            var result = await mediator.Send(command);
+            return Results.Ok(result);
+        }).RequireAuthorization();
+
+        group.MapDelete("/{id:int}", async (int id, IMediator mediator) =>
+        {
+            var result = await mediator.Send(new DeleteExternalTodoCommand { ExternalId = id });
+            return result ? Results.NoContent() : Results.NotFound();
         }).RequireAuthorization();
     }
 }

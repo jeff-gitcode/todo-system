@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using TodoSystem.API.Middleware;
 using TodoSystem.API;
 using Microsoft.AspNetCore.Mvc;
+using OwaspHeaders.Core.Extensions;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(new CompactJsonFormatter()) // Structured JSON logs
@@ -105,6 +106,7 @@ var app = builder.Build();
 
 app.MapDefaultEndpoints();
 
+app.UseSecureHeadersMiddleware();
 
 if (app.Environment.IsDevelopment())
 {

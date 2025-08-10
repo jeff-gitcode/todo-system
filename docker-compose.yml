@@ -1,22 +1,100 @@
+version: '3.8'
+
 services:
   db:
-    image: postgres:16-alpine # Using a specific version is best practice
+    image: postgres:15
     container_name: todo-postgres-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: tododb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: todos
     ports:
       - "5432:5432" # Exposes the database on localhost:5432
     volumes:
-      - postgres_data:/var/lib/postgresql/data # Persists data even if the container is removed
+      - db_data:/var/lib/postgresql/data # Persists data even if the container is removed
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U myuser -d tododb" ]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d todos" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  app:
+    build: .
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: todos
+      DB_USER: postgres
+      DB_PASS: postgres
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # OWASP ZAP for automated security testing
+  zap:
+    image: zaproxy/zap-stable:latest
+    container_name: todo-zap-scanner
+    command: zap-baseline.py -t http://app:8080 -J zap-report.json -r zap-report.html
+    volumes:
+      - ./zap-reports:/zap/wrk:rw
+    depends_on:
+      app:
+        condition: service_healthy
+    profiles:
+      - security-testing
+
+  # ZAP with WebSwing UI (optional for interactive testing)
+  zap-ui:
+    image: zaproxy/zap-stable:latest
+    container_name: todo-zap-ui
+    command: zap-webswing.sh
+    ports:
+      - "8090:8080" # ZAP WebSwing UI
+      - "8091:8090" # ZAP API
+    environment:
+      - ZAP_MODE=daemon
+    volumes:
+      - ./zap-reports:/zap/wrk:rw
+    depends_on:
+      app:
+        condition: service_healthy
+    profiles:
+      - security-testing
+
+  # Frontend service (if you want to test the Next.js app too)
+  frontend:
+    build:
+      context: ./frontend/nextjs
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://app:8080
+    depends_on:
+      - app
+    profiles:
+      - full-stack
+
+  # ZAP for frontend testing
+  zap-frontend:
+    image: zaproxy/zap-stable:latest
+    container_name: todo-zap-frontend
+    command: zap-baseline.py -t http://frontend:3000 -J zap-frontend-report.json -r zap-frontend-report.html
+    volumes:
+      - ./zap-reports:/zap/wrk:rw
+    depends_on:
+      frontend:
+        condition: service_started
+    profiles:
+      - full-stack
+
 volumes:
-  postgres_data:
+  db_data:
     driver: local

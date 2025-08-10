@@ -36,51 +36,99 @@ public class ExceptionHandlingMiddleware
 
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
-        context.Response.ContentType = "application/problem+json";
-
-        var problemDetails = new ProblemDetails
+        // Check if response has already started or been sent
+        if (context.Response.HasStarted)
         {
-            Instance = context.Request.Path
-        };
-
-        switch (exception)
-        {
-            case ValidationException validationException:
-                problemDetails.Title = "Validation error(s)";
-                problemDetails.Status = (int)HttpStatusCode.BadRequest;
-                problemDetails.Detail = "One or more validation errors occurred.";
-                problemDetails.Extensions["errors"] = validationException.Errors
-                    .GroupBy(e => e.PropertyName)
-                    .ToDictionary(
-                        g => g.Key,
-                        g => g.Select(e => e.ErrorMessage).ToArray()
-                    );
-                break;
-
-            case KeyNotFoundException:
-                problemDetails.Title = "Resource not found";
-                problemDetails.Status = (int)HttpStatusCode.NotFound;
-                problemDetails.Detail = exception.Message;
-                break;
-
-            default:
-                problemDetails.Title = "An unexpected error occurred";
-                problemDetails.Status = (int)HttpStatusCode.InternalServerError;
-                problemDetails.Detail = _environment.IsDevelopment()
-                    ? exception.ToString()
-                    : "An unexpected error occurred. Please try again later.";
-                break;
+            _logger.LogWarning("Cannot handle exception because the response has already started");
+            return;
         }
 
-        context.Response.StatusCode = problemDetails.Status.Value;
-
-        var options = new JsonSerializerOptions
+        try
         {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
+            // Clear any existing response content
+            context.Response.Clear();
+            context.Response.ContentType = "application/problem+json";
 
-        var json = JsonSerializer.Serialize(problemDetails, options);
-        await context.Response.WriteAsync(json);
+            var problemDetails = new ProblemDetails
+            {
+                Instance = context.Request.Path
+            };
+
+            switch (exception)
+            {
+                case ValidationException validationException:
+                    problemDetails.Title = "Validation error(s)";
+                    problemDetails.Status = (int)HttpStatusCode.BadRequest;
+                    problemDetails.Detail = "One or more validation errors occurred.";
+                    problemDetails.Extensions["errors"] = validationException.Errors
+                        .GroupBy(e => e.PropertyName)
+                        .ToDictionary(
+                            g => g.Key,
+                            g => g.Select(e => e.ErrorMessage).ToArray()
+                        );
+                    break;
+
+                case KeyNotFoundException:
+                    problemDetails.Title = "Resource not found";
+                    problemDetails.Status = (int)HttpStatusCode.NotFound;
+                    problemDetails.Detail = exception.Message;
+                    break;
+
+                case TaskCanceledException when exception.InnerException is TimeoutException:
+                case TimeoutException:
+                    problemDetails.Title = "Request timeout";
+                    problemDetails.Status = (int)HttpStatusCode.RequestTimeout;
+                    problemDetails.Detail = "The request timed out. Please try again.";
+                    break;
+
+                case HttpRequestException httpRequestException:
+                    problemDetails.Title = "External service error";
+                    problemDetails.Status = (int)HttpStatusCode.BadGateway;
+                    problemDetails.Detail = _environment.IsDevelopment()
+                        ? httpRequestException.Message
+                        : "An error occurred while communicating with an external service.";
+                    break;
+
+                default:
+                    problemDetails.Title = "An unexpected error occurred";
+                    problemDetails.Status = (int)HttpStatusCode.InternalServerError;
+                    problemDetails.Detail = _environment.IsDevelopment()
+                        ? exception.ToString()
+                        : "An unexpected error occurred. Please try again later.";
+                    break;
+            }
+
+            context.Response.StatusCode = problemDetails.Status.Value;
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = _environment.IsDevelopment()
+            };
+
+            var json = JsonSerializer.Serialize(problemDetails, options);
+
+            // Use a safer write method that handles disposed streams
+            if (context.RequestAborted.IsCancellationRequested)
+            {
+                _logger.LogWarning("Request was cancelled before response could be written");
+                return;
+            }
+
+            await context.Response.WriteAsync(json, context.RequestAborted);
+        }
+        catch (ObjectDisposedException)
+        {
+            _logger.LogWarning("Could not write error response because the response stream was disposed");
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("response has already started"))
+        {
+            _logger.LogWarning("Could not write error response because the response has already started");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while handling an exception");
+        }
     }
 }
 

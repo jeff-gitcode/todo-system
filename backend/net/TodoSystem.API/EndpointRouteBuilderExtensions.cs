@@ -10,7 +10,8 @@ public static class EndpointRouteBuilderExtensions
     {
         TodoEndpoints.Map(app);
         AuthEndpoints.Map(app);
-        ExternalTodoEndpoints.Map(app);
+        // Disable external todos for minimal, use controller instead
+        // ExternalTodoEndpoints.Map(app);
 
         return app;
     }

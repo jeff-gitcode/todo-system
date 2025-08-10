@@ -32,6 +32,9 @@ builder.AddServiceDefaults();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Add MVC controllers
+builder.Services.AddControllers();
+
 // DbContext
 builder.Services.AddDbContext<TodoDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -119,6 +122,9 @@ app.UseAuthorization();
 
 app.UseHttpsRedirection();
 app.MapHealthChecks("/health");
+
+// Map MVC controllers (ExternalTodosController)
+app.MapControllers();
 
 // Use extension method to map all feature endpoints
 app.MapFeatureEndpoints();

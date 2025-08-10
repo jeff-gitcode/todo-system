@@ -23,7 +23,7 @@ namespace TodoSystem.Application.Tests.Todos.Queries
 
             var todoId = Guid.NewGuid();
             var todo = new Todo { Id = todoId, Title = "Test Todo" };
-            var todoDto = new TodoDto { Id = todoId, Title = "Test Todo" };
+            var todoDto = new TodoDto { Id = todoId.ToString(), Title = "Test Todo" };
 
             mockRepo.Setup(r => r.GetByIdAsync(todoId)).ReturnsAsync(todo);
             mockMapper.Setup(m => m.Map<TodoDto>(todo)).Returns(todoDto);
@@ -35,7 +35,7 @@ namespace TodoSystem.Application.Tests.Todos.Queries
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(todoId, result.Id);
+            Assert.Equal(todoId.ToString(), result.Id);
             Assert.Equal(todo.Title, result.Title);
             mockRepo.Verify(r => r.GetByIdAsync(todoId), Times.Once);
             mockMapper.Verify(m => m.Map<TodoDto>(todo), Times.Once);

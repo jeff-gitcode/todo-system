@@ -34,7 +34,7 @@ namespace TodoSystem.API.Tests
         {
             // Arrange
             var mediator = new Mock<IMediator>();
-            var createdResult = new TodoDto { Id = Guid.NewGuid(), Title = "Test" };
+            var createdResult = new TodoDto { Id = Guid.NewGuid().ToString(), Title = "Test" };
             mediator.Setup(m => m.Send(It.IsAny<CreateTodoCommand>(), default)).ReturnsAsync(createdResult);
 
             var builder = CreateRouteBuilder(mediator.Object);
@@ -62,7 +62,7 @@ namespace TodoSystem.API.Tests
         {
             // Arrange
             var mediator = new Mock<IMediator>();
-            var todosResult = new[] { new TodoDto { Id = Guid.NewGuid(), Title = "Test" } };
+            var todosResult = new[] { new TodoDto { Id = Guid.NewGuid().ToString(), Title = "Test" } };
             mediator.Setup(m => m.Send(It.IsAny<GetTodosQuery>(), default)).ReturnsAsync(todosResult);
 
             var builder = CreateRouteBuilder(mediator.Object);
@@ -88,7 +88,7 @@ namespace TodoSystem.API.Tests
             // Arrange
             var mediator = new Mock<IMediator>();
             var todoId = Guid.NewGuid();
-            var todoResult = new TodoDto { Id = todoId, Title = "Test" };
+            var todoResult = new TodoDto { Id = todoId.ToString(), Title = "Test" };
             mediator.Setup(m => m.Send(It.Is<GetTodoByIdQuery>(q => q.Id == todoId), default)).ReturnsAsync(todoResult);
 
             var builder = CreateRouteBuilder(mediator.Object);
@@ -151,7 +151,7 @@ namespace TodoSystem.API.Tests
             // Arrange
             var mediator = new Mock<IMediator>();
             var todoId = Guid.NewGuid();
-            var updateResult = new TodoDto { Id = todoId, Title = "Updated" };
+            var updateResult = new TodoDto { Id = todoId.ToString(), Title = "Updated" };
             mediator.Setup(m => m.Send(It.IsAny<UpdateTodoCommand>(), default)).ReturnsAsync(updateResult);
 
             var builder = CreateRouteBuilder(mediator.Object);

@@ -131,7 +131,7 @@ namespace TodoSystem.Infrastructure.ExternalServices
 
                 var externalTodo = new JsonPlaceholderTodo
                 {
-                    Id = todo.Id.GetHashCode(), // Use hash code of Guid as int Id
+                    Id = int.Parse(todo.Id), // Use hash code of Guid as int Id
                     Title = todo.Title,
                     Completed = false // Assuming we don't update completed status
                 };
@@ -192,7 +192,7 @@ namespace TodoSystem.Infrastructure.ExternalServices
         {
             return new TodoDto
             {
-                Id = Guid.NewGuid(), // Generate new GUID for our system
+                Id = Guid.NewGuid().ToString(), // Generate new GUID for our system
                 Title = external.Title
             };
         }

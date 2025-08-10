@@ -24,6 +24,8 @@ using System.Text.Encodings.Web;
 using System.Security.Claims;
 using TodoSystem.Application.Todos.Queries;
 
+namespace TodoSystem.API.IntegrationTests;
+
 public class TodoApiTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly WebApplicationFactory<Program> _factory;
@@ -46,7 +48,7 @@ public class TodoApiTests : IClassFixture<WebApplicationFactory<Program>>
                 // Add mocked MediatR
                 var mockMediator = new Mock<IMediator>();
                 mockMediator.Setup(m => m.Send(It.IsAny<CreateTodoCommand>(), It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(new TodoDto { Id = Guid.NewGuid(), Title = "Test" });
+                    .ReturnsAsync(new TodoDto { Id = Guid.NewGuid().ToString(), Title = "Test" });
 
                 services.AddSingleton(mockMediator.Object);
 
@@ -94,7 +96,7 @@ public class TodoApiTests : IClassFixture<WebApplicationFactory<Program>>
     {
         // Arrange
         var mockMediator = new Mock<IMediator>();
-        var todoList = new[] { new TodoDto { Id = Guid.NewGuid(), Title = "Test Todo" } };
+        var todoList = new[] { new TodoDto { Id = Guid.NewGuid().ToString(), Title = "Test Todo" } };
 
         // Setup the factory with specific mediator behavior for this test
         var factory = _factory.WithWebHostBuilder(builder =>
@@ -138,7 +140,7 @@ public class TodoApiTests : IClassFixture<WebApplicationFactory<Program>>
         // Arrange
         var todoId = Guid.NewGuid();
         var mockMediator = new Mock<IMediator>();
-        var todo = new TodoDto { Id = todoId, Title = "Test Todo" };
+        var todo = new TodoDto { Id = todoId.ToString(), Title = "Test Todo" };
 
         var factory = _factory.WithWebHostBuilder(builder =>
         {
@@ -171,7 +173,7 @@ public class TodoApiTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var returnedTodo = await response.Content.ReadFromJsonAsync<TodoDto>();
         Assert.NotNull(returnedTodo);
-        Assert.Equal(todoId, returnedTodo.Id);
+        Assert.Equal(todoId.ToString(), returnedTodo.Id);
         Assert.Equal("Test Todo", returnedTodo.Title);
     }
 
@@ -218,7 +220,7 @@ public class TodoApiTests : IClassFixture<WebApplicationFactory<Program>>
         // Arrange
         var todoId = Guid.NewGuid();
         var mockMediator = new Mock<IMediator>();
-        var updatedTodo = new TodoDto { Id = todoId, Title = "Updated Todo" };
+        var updatedTodo = new TodoDto { Id = todoId.ToString(), Title = "Updated Todo" };
 
         var factory = _factory.WithWebHostBuilder(builder =>
         {
@@ -252,7 +254,7 @@ public class TodoApiTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var returnedTodo = await response.Content.ReadFromJsonAsync<TodoDto>();
         Assert.NotNull(returnedTodo);
-        Assert.Equal(todoId, returnedTodo.Id);
+        Assert.Equal(todoId.ToString(), returnedTodo.Id);
         Assert.Equal("Updated Todo", returnedTodo.Title);
     }
 

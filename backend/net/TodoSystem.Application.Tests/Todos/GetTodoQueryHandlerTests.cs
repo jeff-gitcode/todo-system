@@ -27,7 +27,7 @@ namespace TodoSystem.Application.Tests.Todos.Queries
                 new Todo { Id = System.Guid.NewGuid(), Title = "Todo 1" },
                 new Todo { Id = System.Guid.NewGuid(), Title = "Todo 2" }
             };
-            var todoDtos = todos.Select(t => new TodoDto { Id = t.Id, Title = t.Title }).ToList();
+            var todoDtos = todos.Select(t => new TodoDto { Id = t.Id.ToString(), Title = t.Title }).ToList();
 
             var query = new GetTodosQuery { Page = 1, PageSize = 10, Filter = null, Sort = null };
 

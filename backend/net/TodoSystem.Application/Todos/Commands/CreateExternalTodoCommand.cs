@@ -29,12 +29,12 @@ namespace TodoSystem.Application.Todos.Commands
 
             var todoDto = new TodoDto
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.NewGuid().ToString(),
                 Title = request.Title
             };
 
             var result = await _externalTodoService.CreateTodoAsync(todoDto, cancellationToken);
-            
+
             if (!result)
             {
                 _logger.LogError("Failed to create external todo with title: {Title}", request.Title);

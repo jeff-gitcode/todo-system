@@ -23,7 +23,7 @@ namespace TodoSystem.Application.Tests.Todos.Commands
 
             var command = new CreateTodoCommand { Title = "Test Todo" };
             var todo = new Todo { Id = System.Guid.NewGuid(), Title = command.Title };
-            var todoDto = new TodoDto { Id = todo.Id, Title = todo.Title };
+            var todoDto = new TodoDto { Id = todo.Id.ToString(), Title = todo.Title };
 
             mockRepo.Setup(r => r.AddAsync(It.IsAny<Todo>())).Returns(Task.CompletedTask);
             mockMapper.Setup(m => m.Map<TodoDto>(It.IsAny<Todo>())).Returns(todoDto);

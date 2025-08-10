@@ -14,6 +14,8 @@ using TodoSystem.API;
 using TodoSystem.Application.Auth.Commands;
 using Xunit;
 
+namespace TodoSystem.API.IntegrationTests;
+
 public class AuthApiTest : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly WebApplicationFactory<Program> _factory;

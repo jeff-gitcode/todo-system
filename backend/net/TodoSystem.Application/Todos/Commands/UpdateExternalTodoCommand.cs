@@ -39,7 +39,7 @@ namespace TodoSystem.Application.Todos.Commands
 
             var todoDto = new TodoDto
             {
-                Id = existingTodo.Id,
+                Id = request.ExternalId.ToString(),
                 Title = request.Title
             };
 

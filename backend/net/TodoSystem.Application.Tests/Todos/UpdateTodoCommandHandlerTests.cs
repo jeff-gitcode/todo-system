@@ -25,7 +25,7 @@ namespace TodoSystem.Application.Tests.Todos.Commands
             var existingTodo = new Todo { Id = todoId, Title = "Old Title" };
             var command = new UpdateTodoCommand { Id = todoId, Title = "New Title" };
             var updatedTodo = new Todo { Id = todoId, Title = command.Title };
-            var todoDto = new TodoDto { Id = todoId, Title = command.Title };
+            var todoDto = new TodoDto { Id = todoId.ToString(), Title = command.Title };
 
             mockRepo.Setup(r => r.GetByIdAsync(todoId)).ReturnsAsync(existingTodo);
             mockRepo.Setup(r => r.UpdateAsync(It.IsAny<Todo>())).Returns(Task.CompletedTask);

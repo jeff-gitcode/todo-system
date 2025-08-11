@@ -18,6 +18,7 @@ using TodoSystem.API;
 using Microsoft.AspNetCore.Mvc;
 using OwaspHeaders.Core.Extensions;
 using OwaspHeaders.Core.Models; // Add this at the top for custom config
+using Microsoft.Net.Http.Headers; // For HeaderNames
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(new CompactJsonFormatter()) // Structured JSON logs
@@ -46,7 +47,7 @@ builder.Services.AddAntiforgery(options =>
     options.Cookie.Name = "__Host-Csrf";
     options.Cookie.HttpOnly = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
     options.SuppressXFrameOptionsHeader = false;
 });
 
@@ -116,6 +117,23 @@ builder.Logging.AddOpenTelemetry(options =>
 //        .AddOtlpExporter()
 //    );
 
+// CORS policy name
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
+// Add CORS services with a named policy (adjust origins as needed)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+        policy =>
+        {
+            policy.WithOrigins(
+                    "https://localhost:7148" // Your dev HTTPS port
+                )
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+});
+
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
@@ -149,6 +167,9 @@ app.UseRequestResponseLogging();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Enable CORS middleware (must be after UseRouting and before UseAuthorization)
+app.UseCors(MyAllowSpecificOrigins);
+
 // Antiforgery middleware (must run after auth)
 app.UseAntiforgery();
 
@@ -168,7 +189,7 @@ app.Use(async (context, next) =>
                 {
                     HttpOnly = false, // JS readable for SPA to send in header
                     Secure = true,
-                    SameSite = SameSiteMode.Strict,
+                    SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict,
                     IsEssential = true
                 });
         }

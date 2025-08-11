@@ -3,6 +3,8 @@ using TodoSystem.Application.Todos.Commands;
 using TodoSystem.Application.Todos.Queries;
 using TodoSystem.Application.Auth.Commands;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Antiforgery; // Add this at the top
+using System.Text.Encodings.Web; // Add for encoding if needed
 
 public static class EndpointRouteBuilderExtensions
 {
@@ -27,6 +29,7 @@ public class AuthEndpoints
             try
             {
                 var result = await mediator.Send(command);
+                // No HTML returned, only JSON, so XSS risk is minimized
                 return Results.Ok(result);
             }
             catch (UnauthorizedAccessException)
@@ -35,10 +38,11 @@ public class AuthEndpoints
             }
             catch (Exception ex)
             {
+                // Defensive: encode error details if ever returned to client
                 return Results.Problem(
                     title: "An error occurred during authentication",
                     statusCode: 500,
-                    detail: ex.Message
+                    detail: JavaScriptEncoder.Default.Encode(ex.Message)
                 );
             }
         });
@@ -51,7 +55,8 @@ public class AuthEndpoints
 
                 if (!result.Success)
                 {
-                    return Results.BadRequest(new { message = result.Message });
+                    // Defensive: encode message if ever returned to client
+                    return Results.BadRequest(new { message = JavaScriptEncoder.Default.Encode(result.Message) });
                 }
 
                 return Results.Created($"/api/v1/auth/users/{result.Email}", result);
@@ -61,7 +66,7 @@ public class AuthEndpoints
                 return Results.Problem(
                     title: "An error occurred during registration",
                     statusCode: 500,
-                    detail: ex.Message
+                    detail: JavaScriptEncoder.Default.Encode(ex.Message)
                 );
             }
         });
@@ -75,8 +80,12 @@ public class TodoEndpoints
     {
         var group = app.MapGroup("/api/v1/todos");
 
-        group.MapPost("/", async ([FromBody] CreateTodoCommand command, IMediator mediator) =>
+        // Require antiforgery token for unsafe methods (POST, PUT, DELETE)
+        group.MapPost("/", async ([FromBody] CreateTodoCommand command, IMediator mediator, IAntiforgery antiforgery, HttpContext httpContext) =>
         {
+            // Validate antiforgery token
+            await antiforgery.ValidateRequestAsync(httpContext);
+
             var result = await mediator.Send(command);
             return Results.Created($"/api/v1/todos/{result.Id}", result);
         }).RequireAuthorization();
@@ -93,8 +102,11 @@ public class TodoEndpoints
             return result is not null ? Results.Ok(result) : Results.NotFound();
         }).RequireAuthorization();
 
-        group.MapPut("/{id:guid}", async (Guid id, [FromBody] UpdateTodoCommand command, IMediator mediator) =>
+        group.MapPut("/{id:guid}", async (Guid id, [FromBody] UpdateTodoCommand command, IMediator mediator, IAntiforgery antiforgery, HttpContext httpContext) =>
         {
+            // Validate antiforgery token
+            await antiforgery.ValidateRequestAsync(httpContext);
+
             if (id != command.Id)
                 return Results.BadRequest(new { message = "ID in URL and body do not match." });
 
@@ -102,8 +114,11 @@ public class TodoEndpoints
             return Results.Ok(result);
         }).RequireAuthorization();
 
-        group.MapDelete("/{id:guid}", async (Guid id, IMediator mediator) =>
+        group.MapDelete("/{id:guid}", async (Guid id, IMediator mediator, IAntiforgery antiforgery, HttpContext httpContext) =>
         {
+            // Validate antiforgery token
+            await antiforgery.ValidateRequestAsync(httpContext);
+
             await mediator.Send(new DeleteTodoCommand { Id = id });
             return Results.NoContent();
         }).RequireAuthorization();

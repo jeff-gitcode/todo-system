@@ -23,6 +23,7 @@ using Microsoft.Extensions.Logging;
 using System.Text.Encodings.Web;
 using System.Security.Claims;
 using TodoSystem.Application.Todos.Queries;
+using System.Net.Http;
 
 namespace TodoSystem.API.IntegrationTests;
 
@@ -76,12 +77,18 @@ public class TodoApiTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task Post_Todo_Returns_Created()
     {
         // Arrange
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost")
+        });
         var command = new CreateTodoCommand { Title = "Test" };
 
         // Add JWT token to bypass authorization
         client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
             "Test", "test-token");
+
+        // Add antiforgery token
+        await AddAntiforgeryTokenAsync(client);
 
         // Act
         var response = await client.PostAsJsonAsync("/api/v1/todos", command);
@@ -258,6 +265,9 @@ public class TodoApiTests : IClassFixture<WebApplicationFactory<Program>>
         client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
             "Test", "test-token");
 
+        // Add antiforgery token
+        await AddAntiforgeryTokenAsync(client);
+
         // Act
         var response = await client.PutAsJsonAsync($"/api/v1/todos/{todoId}", command);
 
@@ -303,12 +313,47 @@ public class TodoApiTests : IClassFixture<WebApplicationFactory<Program>>
         client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
             "Test", "test-token");
 
+        // Add antiforgery token
+        await AddAntiforgeryTokenAsync(client);
+
         // Act
         var response = await client.DeleteAsync($"/api/v1/todos/{todoId}");
 
         // Assert
         response.EnsureSuccessStatusCode();
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+    }
+
+    // Add this helper method to your test class
+    private async Task AddAntiforgeryTokenAsync(HttpClient client)
+    {
+        // 1. Get the antiforgery token cookie by making a GET request
+        var getResponse = await client.GetAsync("/api/v1/todos");
+        getResponse.EnsureSuccessStatusCode();
+
+        // 2. Extract the XSRF-TOKEN cookie
+        var setCookie = getResponse.Headers.GetValues("Set-Cookie")
+            .FirstOrDefault(x => x.StartsWith("XSRF-TOKEN"));
+        if (setCookie == null)
+            throw new InvalidOperationException("No XSRF-TOKEN cookie found.");
+
+        // Manually parse the XSRF-TOKEN value from the Set-Cookie header
+        var xsrfToken = setCookie.Split(';')
+            .Select(part => part.Trim())
+            .FirstOrDefault(part => part.StartsWith("XSRF-TOKEN=", StringComparison.OrdinalIgnoreCase));
+
+        if (string.IsNullOrEmpty(xsrfToken))
+            throw new InvalidOperationException("No XSRF-TOKEN value found.");
+
+        xsrfToken = xsrfToken.Substring("XSRF-TOKEN=".Length);
+
+        // 3. Add the XSRF-TOKEN cookie and header to the client
+        client.DefaultRequestHeaders.Remove("X-XSRF-TOKEN");
+        client.DefaultRequestHeaders.Add("X-XSRF-TOKEN", xsrfToken);
+
+        // Add the cookie to the CookieContainer if using HttpClientHandler, or use a Cookie header
+        client.DefaultRequestHeaders.Remove("Cookie");
+        client.DefaultRequestHeaders.Add("Cookie", $"XSRF-TOKEN={xsrfToken}");
     }
 }
 

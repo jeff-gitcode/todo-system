@@ -14,7 +14,8 @@ using System;
 using System.IO;
 using TodoSystem.Application.Dtos;
 using System.Collections.Generic;
-using System.Linq; // Add this using if not present
+using System.Linq;
+using Microsoft.AspNetCore.Antiforgery; // Add this at the top
 
 namespace TodoSystem.API.Tests
 {
@@ -24,7 +25,15 @@ namespace TodoSystem.API.Tests
         {
             var services = new ServiceCollection();
             services.AddSingleton(mediator);
-            services.AddSingleton<Microsoft.Extensions.Logging.ILoggerFactory, Microsoft.Extensions.Logging.LoggerFactory>(); // Add this line
+            services.AddSingleton<Microsoft.Extensions.Logging.ILoggerFactory, Microsoft.Extensions.Logging.LoggerFactory>();
+
+            // Register a fake/mock IAntiforgery for minimal API endpoints
+            var antiforgeryMock = new Mock<IAntiforgery>();
+            antiforgeryMock
+                .Setup(x => x.ValidateRequestAsync(It.IsAny<HttpContext>()))
+                .Returns(Task.CompletedTask);
+            services.AddSingleton(antiforgeryMock.Object);
+
             var app = new ApplicationBuilder(services.BuildServiceProvider());
             return new RouteBuilderStub(app);
         }

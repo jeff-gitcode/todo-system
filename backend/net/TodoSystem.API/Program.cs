@@ -17,6 +17,7 @@ using TodoSystem.API.Middleware;
 using TodoSystem.API;
 using Microsoft.AspNetCore.Mvc;
 using OwaspHeaders.Core.Extensions;
+using OwaspHeaders.Core.Models; // Add this at the top for custom config
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(new CompactJsonFormatter()) // Structured JSON logs
@@ -119,7 +120,22 @@ var app = builder.Build();
 
 app.MapDefaultEndpoints();
 
-app.UseSecureHeadersMiddleware();
+// Use OWASP Secure Headers with default recommended configuration
+// See: https://github.com/GaProgMan/OwaspHeaders.Core#secure-headers
+app.UseSecureHeadersMiddleware(
+    SecureHeadersMiddlewareBuilder
+        .CreateBuilder()
+        .UseHsts() // HTTP Strict Transport Security
+        .UseXFrameOptions() // Prevent clickjacking
+        .UseContentTypeOptions() // Prevent MIME sniffing
+        .UseContentSecurityPolicy() // Adds a default Content-Security-Policy
+        .UsePermittedCrossDomainPolicies()
+        .UseReferrerPolicy()
+        .UseCacheControl()
+        .UseXssProtection() // Adds X-XSS-Protection: 0 (modern browsers ignore, but harmless)
+        .UseCrossOriginResourcePolicy()
+        .Build()
+);
 
 if (app.Environment.IsDevelopment())
 {

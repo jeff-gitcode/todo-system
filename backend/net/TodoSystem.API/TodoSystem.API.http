@@ -1,4 +1,4 @@
-@HostAddress = http://localhost:5260
+@HostAddress = https://localhost:7148
 @contentType = application/json
 
 ### Register a new user

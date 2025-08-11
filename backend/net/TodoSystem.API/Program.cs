@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Antiforgery; // Add this
+using Microsoft.AspNetCore.Http;        // Add this for CookieOptions
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Formatting.Compact;
@@ -35,6 +37,17 @@ builder.Services.AddSwaggerGen();
 
 // Add MVC controllers
 builder.Services.AddControllers();
+
+// Add Antiforgery for CSRF protection (see #fetch)
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-XSRF-TOKEN"; // Angular/SPA convention
+    options.Cookie.Name = "__Host-Csrf";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.SuppressXFrameOptionsHeader = false;
+});
 
 // DbContext
 builder.Services.AddDbContext<TodoDbContext>(options =>
@@ -116,22 +129,44 @@ if (app.Environment.IsDevelopment())
 
 // Add the custom exception handling middleware
 app.UseCustomExceptionHandler();
-app.UseRequestResponseLogging(); // <-- Add this line
-//app.UseSerilogRequestLogging();
+app.UseRequestResponseLogging();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Antiforgery middleware (must run after auth)
+app.UseAntiforgery();
+
+// Emit a JS-readable XSRF token cookie on safe GETs for SPA clients
+var antiforgery = app.Services.GetRequiredService<IAntiforgery>();
+app.Use(async (context, next) =>
+{
+    if (HttpMethods.IsGet(context.Request.Method))
+    {
+        var tokens = antiforgery.GetAndStoreTokens(context);
+        if (!string.IsNullOrEmpty(tokens.RequestToken))
+        {
+            context.Response.Cookies.Append(
+                "XSRF-TOKEN",
+                tokens.RequestToken!,
+                new CookieOptions
+                {
+                    HttpOnly = false, // JS readable for SPA to send in header
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict,
+                    IsEssential = true
+                });
+        }
+    }
+    await next();
+});
 
 app.UseHttpsRedirection();
 app.MapHealthChecks("/health");
 
 // Map MVC controllers (ExternalTodosController)
 app.MapControllers();
-
-// Use extension method to map all feature endpoints
 app.MapFeatureEndpoints();
 
 app.Run();
 
-// In Program.cs
-public partial class Program { } // This makes the auto-generated Program class public
+public partial class Program { }

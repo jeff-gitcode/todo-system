@@ -106,6 +106,28 @@ dotnet add TodoSystem.Domain.Tests/TodoSystem.Domain.Tests.csproj reference Todo
 
 The API will be available at `https://localhost:5001` and `http://localhost:5000`.
 
+## Running the API with HTTPS
+
+To ensure your API uses HTTPS (recommended for development and required for production), use the `https` launch profile:
+
+```sh
+dotnet run --project TodoSystem.API --launch-profile https
+```
+
+This will start the API on:
+
+- https://localhost:7148
+- http://localhost:5260
+
+You can now make secure requests to `https://localhost:7148`.
+
+If you use Visual Studio or VS Code, select the `https` profile when launching the project.
+
+> **Tip:** If you see a browser warning about the development certificate, you can trust the .NET dev certificate by running:
+> ```sh
+> dotnet dev-certs https --trust
+> ```
+
 ## API Endpoints
 
 ### Authentication

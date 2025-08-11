@@ -162,7 +162,11 @@ public class ExternalTodoApiTests : IClassFixture<WebApplicationFactory<Program>
             });
         });
 
-        var client = factory.CreateClient();
+        // Use HTTPS base address to satisfy antiforgery SecurePolicy = Always
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost")
+        });
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Test", "test-token");
         return client;
     }

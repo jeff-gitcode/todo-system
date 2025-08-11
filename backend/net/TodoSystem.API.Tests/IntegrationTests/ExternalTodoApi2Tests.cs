@@ -94,7 +94,10 @@ public class ExternalTodoApi2Tests : IClassFixture<WebApplicationFactory<Program
             });
         });
 
-        var client = factory.CreateClient();
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost") // Ensure HTTPS for antiforgery
+        });
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Test", "test-token");
         return client;
     }

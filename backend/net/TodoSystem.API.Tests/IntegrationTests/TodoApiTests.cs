@@ -116,7 +116,10 @@ public class TodoApiTests : IClassFixture<WebApplicationFactory<Program>>
             });
         });
 
-        var client = factory.CreateClient();
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost") // Ensure HTTPS for antiforgery
+        });
 
         // Add JWT token to bypass authorization
         client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
@@ -159,7 +162,10 @@ public class TodoApiTests : IClassFixture<WebApplicationFactory<Program>>
             });
         });
 
-        var client = factory.CreateClient();
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost") // Ensure HTTPS for antiforgery
+        });
 
         // Add JWT token to bypass authorization
         client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
@@ -201,7 +207,10 @@ public class TodoApiTests : IClassFixture<WebApplicationFactory<Program>>
             });
         });
 
-        var client = factory.CreateClient();
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost") // Ensure HTTPS for antiforgery
+        });
 
         // Add JWT token to bypass authorization
         client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
@@ -239,7 +248,10 @@ public class TodoApiTests : IClassFixture<WebApplicationFactory<Program>>
             });
         });
 
-        var client = factory.CreateClient();
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost") // Ensure HTTPS for antiforgery
+        });
         var command = new UpdateTodoCommand { Id = todoId, Title = "Updated Todo" };
 
         // Add JWT token to bypass authorization
@@ -282,7 +294,10 @@ public class TodoApiTests : IClassFixture<WebApplicationFactory<Program>>
             });
         });
 
-        var client = factory.CreateClient();
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost") // Ensure HTTPS for antiforgery
+        });
 
         // Add JWT token to bypass authorization
         client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(

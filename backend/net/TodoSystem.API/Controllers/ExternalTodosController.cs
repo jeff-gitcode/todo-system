@@ -28,6 +28,7 @@ public class ExternalTodosController : ControllerBase
     }
 
     // GET /api/v1/externaltodos/{id}
+    // [IgnoreAntiforgeryToken]
     [HttpGet("{id:int}")]
     public async Task<ActionResult<TodoDto>> GetById(int id, CancellationToken ct)
     {

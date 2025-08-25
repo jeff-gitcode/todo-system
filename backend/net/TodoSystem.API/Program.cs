@@ -44,12 +44,33 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
     });
 
-// Memory Cache
-builder.Services.AddMemoryCache(options =>
+
+// Add Antiforgery for CSRF protection
+builder.Services.AddAntiforgery(options =>
 {
-    options.SizeLimit = 1024; // Limit cache size
-    options.TrackStatistics = true; // Enable cache statistics
+    options.HeaderName = "X-XSRF-TOKEN";
+    options.Cookie.Name = "__Host-Csrf";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
+    options.SuppressXFrameOptionsHeader = false;
 });
+
+// DbContext with connection pooling
+builder.Services.AddDbContextPool<TodoDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")),
+    poolSize: 128);
+
+// Dependency Injection
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
+
+// Memory Cache
+// builder.Services.AddMemoryCache(options =>
+// {
+//     options.SizeLimit = 1024; // Limit cache size
+//     options.TrackStatistics = true; // Enable cache statistics
+// });
 
 // Response Caching
 builder.Services.AddResponseCaching(options =>
@@ -84,25 +105,6 @@ builder.Services.AddResponseCompression(options =>
     options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
 });
 
-// Add Antiforgery for CSRF protection
-builder.Services.AddAntiforgery(options =>
-{
-    options.HeaderName = "X-XSRF-TOKEN";
-    options.Cookie.Name = "__Host-Csrf";
-    options.Cookie.HttpOnly = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
-    options.SuppressXFrameOptionsHeader = false;
-});
-
-// DbContext with connection pooling
-builder.Services.AddDbContextPool<TodoDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")),
-    poolSize: 128);
-
-// Dependency Injection
-builder.Services.AddApplication();
-builder.Services.AddInfrastructure(builder.Configuration);
 
 // MediatR
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateTodoCommand).Assembly));
@@ -183,7 +185,8 @@ app.MapDefaultEndpoints();
 // Response Compression (early in pipeline)
 app.UseResponseCompression();
 
-// Use OWASP Secure Headers
+// Use OWASP Secure Headers with default recommended configuration
+// See: https://github.com/GaProgMan/OwaspHeaders.Core#secure-headers
 app.UseSecureHeadersMiddleware(
     SecureHeadersMiddlewareBuilder
         .CreateBuilder()

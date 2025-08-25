@@ -2,7 +2,7 @@
 
 This is the .NET backend API for the Todo System application built with .NET 9. It provides comprehensive endpoints for managing todos, user authentication, external API integration, and includes advanced features like caching, security hardening, and comprehensive testing.
 
-## System Diagram
+## Architecture Diagram
 ```mermaid
 flowchart TD
     subgraph Client
@@ -79,6 +79,67 @@ flowchart TD
     B --> G
 ```
 
+## Sequence Diagram
+```mermaid
+sequenceDiagram
+    participant Client as TodoSystem.Client - Web/Mobile
+    participant API as TodoSystem.API - ASP.NET Core 9
+    participant Auth as Authentication - JWT, CSRF
+    participant Controller as Controllers & Endpoints
+    participant Cache as Output/Response/Memory Caching
+    participant Security as Security Headers
+    participant Health as Health Checks
+    participant Logging as Logging & OpenTelemetry
+    participant RateLimiter as Rate Limiting
+    participant App as TodoSystem.Application - CQRS, DTOs, Services
+    participant MediatR as MediatR
+    participant ServiceLayer as Service Layer
+    participant Domain as TodoSystem.Domain - Entities, Interfaces
+    participant Infra as TodoSystem.Infrastructure - EF Core, External APIs, Caching, Kafka
+    participant DbPool as DbContext Pooling
+    participant Polly as Polly Resilience
+    participant Kafka as Kafka Integration
+    participant Decorator as External API Decorators
+    participant Aspire as TodoSystem.AppHost - Aspire Orchestration
+    participant ServiceDiscovery as Service Discovery
+    participant Config as Configuration
+    participant ServiceDefaults as TodoSystem.ServiceDefaults - Shared Configs
+    participant Database as PostgreSQL
+    participant KafkaBroker as Kafka Broker
+
+    Client->>API: HTTP Request (e.g. GET /api/v1/todos)
+    API->>Auth: Validate JWT & CSRF
+    API->>RateLimiter: Check rate limits
+    API->>Security: Apply security headers
+    API->>Controller: Route to controller
+    Controller->>Cache: Check cache
+    alt Cache Hit
+        Cache-->>Controller: Return cached response
+    else Cache Miss
+        Controller->>App: Call application layer
+        App->>MediatR: Dispatch request
+        MediatR->>ServiceLayer: Handle business logic
+        ServiceLayer->>Domain: Validate entities
+        ServiceLayer->>Infra: Data access or external API
+        Infra->>DbPool: Use DbContext pooling
+        Infra->>Polly: Apply resilience policies
+        Infra->>Decorator: Use external API decorators
+        Infra->>Kafka: Publish/consume events
+        Infra->>Database: Query/update PostgreSQL
+        Infra->>KafkaBroker: Send/receive Kafka messages
+        Infra-->>ServiceLayer: Return data
+        ServiceLayer-->>MediatR: Return result
+        MediatR-->>App: Return result
+        App-->>Controller: Return result
+        Controller->>Cache: Store in cache
+        Controller-->>API: Return response
+    end
+    API->>Health: Health check (if requested)
+    API->>Logging: Log request/response
+    API->>Aspire: Service orchestration (local dev)
+    API->>ServiceDefaults: Use shared configs
+    API-->>Client:HTTP Response
+``` 
 
 ## Technology Stack
 

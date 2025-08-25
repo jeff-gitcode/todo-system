@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Memory; // Add this using statement
 using Polly;
 using Polly.Extensions.Http;
 using TodoSystem.Application.Services;
@@ -18,8 +19,8 @@ namespace TodoSystem.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
-            // Register cache service first
-            // services.AddSingleton<ICacheService, MemoryCacheService>();
+            // Add memory cache services - ADD THIS LINE
+            services.AddMemoryCache();
 
             // Database context
             services.AddDbContext<TodoDbContext>(options =>
@@ -49,6 +50,9 @@ namespace TodoSystem.Infrastructure
 
             // Register the base service
             services.AddScoped<JsonPlaceholderService>();
+
+            // Register cache service first
+            services.AddSingleton<ICacheService, MemoryCacheService>();
 
             // Register the decorator manually
             services.AddScoped<IExternalTodoService>(serviceProvider =>

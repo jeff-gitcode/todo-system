@@ -37,13 +37,20 @@ builder.AddServiceDefaults();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add MVC controllers
-builder.Services.AddControllers();
+// Add MVC controllers with JSON optimization
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.WriteIndented = false;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+    });
 
-// Add Antiforgery for CSRF protection (see #fetch)
+
+// Add Antiforgery for CSRF protection
 builder.Services.AddAntiforgery(options =>
 {
-    options.HeaderName = "X-XSRF-TOKEN"; // Angular/SPA convention
+    options.HeaderName = "X-XSRF-TOKEN";
     options.Cookie.Name = "__Host-Csrf";
     options.Cookie.HttpOnly = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
@@ -58,6 +65,47 @@ builder.Services.AddDbContext<TodoDbContext>(options =>
 // Dependency Injection
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// Memory Cache
+// builder.Services.AddMemoryCache(options =>
+// {
+//     options.SizeLimit = 1024; // Limit cache size
+//     options.TrackStatistics = true; // Enable cache statistics
+// });
+
+// Response Caching
+builder.Services.AddResponseCaching(options =>
+{
+    options.MaximumBodySize = 64 * 1024; // 64KB max body size for caching
+    options.UseCaseSensitivePaths = false;
+});
+
+// Output Cache (ASP.NET Core 7+)
+builder.Services.AddOutputCache(options =>
+{
+    options.AddPolicy("ExternalTodos", builder =>
+        builder.Expire(TimeSpan.FromSeconds(30))
+               .Tag("external-todos")
+               .SetVaryByQuery("page", "size"));
+
+    options.AddPolicy("UserTodos", builder =>
+        builder.Expire(TimeSpan.FromSeconds(60))
+               .Tag("user-todos")
+               .SetVaryByQuery("filter", "sort"));
+
+    options.AddPolicy("PublicData", builder =>
+        builder.Expire(TimeSpan.FromMinutes(5))
+               .Tag("public"));
+});
+
+// Response Compression
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProvider>();
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
+});
+
 
 // MediatR
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateTodoCommand).Assembly));
@@ -138,6 +186,9 @@ var app = builder.Build();
 
 app.MapDefaultEndpoints();
 
+// Response Compression (early in pipeline)
+app.UseResponseCompression();
+
 // Use OWASP Secure Headers with default recommended configuration
 // See: https://github.com/GaProgMan/OwaspHeaders.Core#secure-headers
 app.UseSecureHeadersMiddleware(
@@ -161,7 +212,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Add the custom exception handling middleware
+// Response Caching
+app.UseResponseCaching();
+
+// Output Cache
+app.UseOutputCache();
+
 app.UseCustomExceptionHandler();
 app.UseRequestResponseLogging();
 app.UseAuthentication();

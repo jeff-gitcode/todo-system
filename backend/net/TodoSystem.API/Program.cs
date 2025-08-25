@@ -174,6 +174,8 @@ builder.Services.AddRateLimiter(options =>
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 
+// builder.Services.AddHostedService<TodoSystem.Infrastructure.Services.KafkaConsumerService>();
+
 var app = builder.Build();
 
 app.MapDefaultEndpoints();

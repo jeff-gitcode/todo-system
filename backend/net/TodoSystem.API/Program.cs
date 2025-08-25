@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Mvc;
 using OwaspHeaders.Core.Extensions;
 using OwaspHeaders.Core.Models;
 using Microsoft.Net.Http.Headers;
+using System.Threading.RateLimiting;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(new CompactJsonFormatter())
@@ -157,6 +158,22 @@ builder.Services.AddCors(options =>
         });
 });
 
+// Add Rate Limiting
+builder.Services.AddRateLimiter(options =>
+{
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.User.Identity?.Name ?? "anonymous",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100, // max requests per window
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            }));
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
+
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
@@ -224,6 +241,10 @@ app.Use(async (context, next) =>
 });
 
 app.UseHttpsRedirection();
+
+// Enable Rate Limiting middleware
+app.UseRateLimiter();
+
 app.MapHealthChecks("/health");
 
 // Map controllers with output caching

@@ -1,5 +1,52 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## System Design
+```mermaid
+graph TD
+  subgraph Frontend
+    A[Next.js App]
+    B[Shadcn/UI Components]
+    C[Tailwind CSS]
+    D[React Query - TanStack]
+    E[Storybook]
+    F[Playwright/Jest/Vitest]
+    G[Better Auth Client]
+  end
+
+  subgraph API_Layer
+    H[api/auth - Auth Endpoints]
+    I[api/todos - Todo Endpoints]
+    J[Middleware - Auth Routing]
+  end
+
+  subgraph Backend
+    K[Prisma ORM]
+    L[Postgres DB]
+    M[Better Auth Server]
+    N[json-server - Mock API]
+  end
+
+  A -->|UI| B
+  A -->|Styling| C
+  A -->|State| D
+  A -->|Testing| E
+  A -->|Testing| F
+  A -->|Auth| G
+  A -->|API Calls| H
+  A -->|API Calls| I
+  A -->|Protected Routing| J
+
+  H -->|DB Access| K
+  I -->|DB Access| K
+  K -->|Data| L
+  G -->|Session| M
+  M -->|DB| K
+
+  N -->|Mock Data| A
+
+  J -->|Route Protection| A
+```
+
 ## Getting Started
 
 First, run the development server:

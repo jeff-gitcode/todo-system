@@ -1,7 +1,13 @@
 using Confluent.Kafka;
+using Confluent.Kafka.Admin;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Hosting;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using TodoSystem.Infrastructure.Configuration;
 
 namespace TodoSystem.Infrastructure.Services
@@ -10,17 +16,20 @@ namespace TodoSystem.Infrastructure.Services
     {
         private readonly KafkaConfig _kafkaConfig;
         private readonly ILogger<KafkaConsumerService> _logger;
+        private readonly IServiceScopeFactory _scopeFactory; // Use this for accessing scoped services
         private IConsumer<string, string>? _consumer;
 
         public KafkaConsumerService(
             IOptions<KafkaConfig> kafkaConfig,
-            ILogger<KafkaConsumerService> logger)
+            ILogger<KafkaConsumerService> logger,
+            IServiceScopeFactory scopeFactory) // Inject IServiceScopeFactory
         {
             _kafkaConfig = kafkaConfig.Value;
             _logger = logger;
+            _scopeFactory = scopeFactory;
         }
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var config = new ConsumerConfig
             {
@@ -29,6 +38,14 @@ namespace TodoSystem.Infrastructure.Services
                 AutoOffsetReset = AutoOffsetReset.Earliest,
                 EnableAutoCommit = true
             };
+
+            // Check if topic exists before subscribing
+            bool topicExists = await CheckIfTopicExistsAsync();
+            if (!topicExists)
+            {
+                _logger.LogWarning("Kafka topic '{Topic}' does not exist. Consumer will not start.", _kafkaConfig.ExternalTodoTopic);
+                return;
+            }
 
             _consumer = new ConsumerBuilder<string, string>(config)
                 .SetErrorHandler((_, error) =>
@@ -42,46 +59,86 @@ namespace TodoSystem.Infrastructure.Services
                 .Build();
 
             _consumer.Subscribe(_kafkaConfig.ExternalTodoTopic);
-
             _logger.LogInformation("Kafka consumer subscribed to topic: {Topic}", _kafkaConfig.ExternalTodoTopic);
 
-            return Task.Run(() =>
-            {
-                try
-                {
-                    while (!stoppingToken.IsCancellationRequested)
-                    {
-                        try
-                        {
-                            var result = _consumer.Consume(stoppingToken);
-                            if (result != null)
-                            {
-                                _logger.LogInformation(
-                                    "Consumed message: Key={Key}, Value={Value}, Partition={Partition}, Offset={Offset}",
-                                    result.Message.Key,
-                                    result.Message.Value,
-                                    result.Partition.Value,
-                                    result.Offset.Value);
+            await Task.Run(() => ConsumeMessages(stoppingToken), stoppingToken);
+        }
 
-                                // TODO: Deserialize and process the event as needed
-                            }
-                        }
-                        catch (ConsumeException ex)
+        private async Task<bool> CheckIfTopicExistsAsync()
+        {
+            try
+            {
+                using var adminClient = new AdminClientBuilder(
+                    new AdminClientConfig { BootstrapServers = _kafkaConfig.BootstrapServers }
+                ).Build();
+
+                var metadata = adminClient.GetMetadata(TimeSpan.FromSeconds(10));
+                return metadata.Topics.Exists(t =>
+                    t.Topic == _kafkaConfig.ExternalTodoTopic &&
+                    t.Error.Code == ErrorCode.NoError);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to check Kafka topic existence");
+                return false;
+            }
+        }
+
+        private void ConsumeMessages(CancellationToken stoppingToken)
+        {
+            try
+            {
+                while (!stoppingToken.IsCancellationRequested)
+                {
+                    try
+                    {
+                        var result = _consumer?.Consume(stoppingToken);
+                        if (result != null)
                         {
-                            _logger.LogError(ex, "Kafka consume error: {Reason}", ex.Error.Reason);
+                            _logger.LogInformation(
+                                "Consumed message: Key={Key}, Value={Value}, Partition={Partition}, Offset={Offset}",
+                                result.Message.Key,
+                                result.Message.Value,
+                                result.Partition.Value,
+                                result.Offset.Value);
+
+                            // Process the message using a scoped context
+                            ProcessMessage(result.Message.Value);
                         }
                     }
+                    catch (ConsumeException ex)
+                    {
+                        _logger.LogError(ex, "Kafka consume error: {Reason}", ex.Error.Reason);
+                    }
                 }
-                catch (OperationCanceledException)
-                {
-                    // Graceful shutdown
-                }
-                finally
-                {
-                    _consumer?.Close();
-                    _logger.LogInformation("Kafka consumer closed");
-                }
-            }, stoppingToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // Graceful shutdown
+            }
+            finally
+            {
+                _consumer?.Close();
+                _logger.LogInformation("Kafka consumer closed");
+            }
+        }
+
+        private void ProcessMessage(string message)
+        {
+            // Create a scope for accessing scoped services
+            using var scope = _scopeFactory.CreateScope();
+            try
+            {
+                // Get required scoped services within this scope
+                // var dbContext = scope.ServiceProvider.GetRequiredService<TodoDbContext>();
+
+                // TODO: Process the message with your scoped services
+                // Example: Save message to database, update entity, etc.
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing Kafka message");
+            }
         }
 
         public override void Dispose()

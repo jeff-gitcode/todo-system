@@ -47,7 +47,7 @@ public class AuthEndpoints
             }
         });
 
-        group.MapPost("/register", async ([FromBody] RegisterCommand command, IMediator mediator) =>
+        group.MapPost("/register", async ([FromBody] RegisterCommand command, [FromServices] IMediator mediator) =>
         {
             try
             {

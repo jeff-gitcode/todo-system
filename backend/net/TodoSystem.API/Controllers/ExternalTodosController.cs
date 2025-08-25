@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 using TodoSystem.Application.Dtos;
 using TodoSystem.Application.Todos.Commands;
 using TodoSystem.Application.Todos.Queries;
@@ -13,16 +14,20 @@ namespace TodoSystem.API.Controllers;
 public class ExternalTodosController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly ILogger<ExternalTodosController> _logger;
 
-    public ExternalTodosController(IMediator mediator)
+    public ExternalTodosController(IMediator mediator, ILogger<ExternalTodosController> logger)
     {
         _mediator = mediator;
+        _logger = logger;
     }
 
     // GET /api/v1/externaltodos
     [HttpGet]
+    [OutputCache(Duration = 30)]
     public async Task<ActionResult<IEnumerable<TodoDto>>> GetAll(CancellationToken ct)
     {
+        _logger.LogInformation("TodosController.GetAll called at {Time}", DateTime.UtcNow);
         var result = await _mediator.Send(new TodoSystem.Application.Todos.Queries.GetExternalTodosQuery(), ct);
         return Ok(result);
     }

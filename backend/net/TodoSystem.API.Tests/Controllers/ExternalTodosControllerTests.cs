@@ -16,8 +16,11 @@ namespace TodoSystem.API.Controllers.Tests
 {
     public class ExternalTodosControllerTests
     {
-        private static ExternalTodosController CreateController(Mock<IMediator> mockMediator) =>
-                new ExternalTodosController(mockMediator.Object);
+        private static ExternalTodosController CreateController(Mock<IMediator> mockMediator)
+        {
+            var mockLogger = new Mock<Microsoft.Extensions.Logging.ILogger<ExternalTodosController>>();
+            return new ExternalTodosController(mockMediator.Object, mockLogger.Object);
+        }
 
         [Fact]
         public async Task GetAll_ReturnsOk_WithTodos()

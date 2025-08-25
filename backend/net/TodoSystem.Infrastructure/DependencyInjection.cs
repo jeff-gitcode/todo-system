@@ -38,8 +38,17 @@ namespace TodoSystem.Infrastructure
             // Register HTTP client with your existing Polly policies
             services.AddHttpClient<JsonPlaceholderService>(client =>
             {
-                var options = configuration.GetSection(JsonPlaceholderOptions.SectionName).Get<JsonPlaceholderOptions>()
-                    ?? new JsonPlaceholderOptions();
+                var jsonPlaceholderSection = configuration.GetSection(JsonPlaceholderOptions.SectionName);
+                if (!jsonPlaceholderSection.Exists())
+                {
+                    throw new InvalidOperationException($"Configuration section '{JsonPlaceholderOptions.SectionName}' not found. Please check your appsettings.json file.");
+                }
+
+                var options = jsonPlaceholderSection.Get<JsonPlaceholderOptions>();
+                if (options == null)
+                {
+                    throw new InvalidOperationException($"Failed to bind configuration section '{JsonPlaceholderOptions.SectionName}' to JsonPlaceholderOptions. Make sure Microsoft.Extensions.Configuration.Binder package is installed.");
+                }
 
                 client.BaseAddress = new Uri(options.BaseUrl);
                 client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
@@ -72,7 +81,7 @@ namespace TodoSystem.Infrastructure
             services.AddSingleton<IEventPublisher, KafkaProducerService>();
 
             // Register Kafka consumer as hosted service (if you want it to run in the background)
-            // services.AddHostedService<KafkaConsumerService>();
+            services.AddHostedService<KafkaConsumerService>();
 
             return services;
         }

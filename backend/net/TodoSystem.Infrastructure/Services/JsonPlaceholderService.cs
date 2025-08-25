@@ -28,6 +28,7 @@ namespace TodoSystem.Infrastructure.ExternalServices
                 var response = await _httpClient.GetFromJsonAsync<JsonPlaceholderTodo[]>(
                     "todos", cancellationToken);
 
+                _logger.LogInformation("Received response from JSONPlaceholder");
                 if (response == null)
                 {
                     _logger.LogWarning("No todos received from JSONPlaceholder");

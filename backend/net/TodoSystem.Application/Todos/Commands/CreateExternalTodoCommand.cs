@@ -15,16 +15,17 @@ namespace TodoSystem.Application.Todos.Commands
     {
         private readonly IExternalTodoService _externalTodoService;
         private readonly ILogger<CreateExternalTodoCommandHandler> _logger;
-        private readonly IEventPublisher _eventPublisher;
+        // private readonly IEventPublisher _eventPublisher;
 
         public CreateExternalTodoCommandHandler(
             IExternalTodoService externalTodoService,
-            ILogger<CreateExternalTodoCommandHandler> logger,
-            IEventPublisher eventPublisher)
+            ILogger<CreateExternalTodoCommandHandler> logger
+            // IEventPublisher eventPublisher
+            )
         {
             _externalTodoService = externalTodoService;
             _logger = logger;
-            _eventPublisher = eventPublisher;
+            // _eventPublisher = eventPublisher;
         }
 
         public async Task<TodoDto> Handle(CreateExternalTodoCommand request, CancellationToken cancellationToken)
@@ -46,13 +47,13 @@ namespace TodoSystem.Application.Todos.Commands
             }
 
             // Publish event to Kafka after successful creation
-            var eventData = new ExternalTodoCreatedEvent
-            {
-                Id = todoDto.Id,
-                Title = todoDto.Title
-                // Add other properties as needed
-            };
-            await _eventPublisher.PublishExternalTodoCreatedAsync(eventData, cancellationToken);
+            // var eventData = new ExternalTodoCreatedEvent
+            // {
+            //     Id = todoDto.Id,
+            //     Title = todoDto.Title
+            //     // Add other properties as needed
+            // };
+            // await _eventPublisher.PublishExternalTodoCreatedAsync(eventData, cancellationToken);
 
             _logger.LogInformation("Successfully created external todo with title: {Title}", request.Title);
             return todoDto;

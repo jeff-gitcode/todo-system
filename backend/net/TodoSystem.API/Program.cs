@@ -31,6 +31,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
+// Logging, should disable serilog in aspire for structured logging
+// builder.Host.UseSerilog();
+
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -44,12 +47,32 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
     });
 
-// Memory Cache
-builder.Services.AddMemoryCache(options =>
+
+// Add Antiforgery for CSRF protection
+builder.Services.AddAntiforgery(options =>
 {
-    options.SizeLimit = 1024; // Limit cache size
-    options.TrackStatistics = true; // Enable cache statistics
+    options.HeaderName = "X-XSRF-TOKEN";
+    options.Cookie.Name = "__Host-Csrf";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
+    options.SuppressXFrameOptionsHeader = false;
 });
+
+// DbContext
+builder.Services.AddDbContext<TodoDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Dependency Injection
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
+
+// Memory Cache
+// builder.Services.AddMemoryCache(options =>
+// {
+//     options.SizeLimit = 1024; // Limit cache size
+//     options.TrackStatistics = true; // Enable cache statistics
+// });
 
 // Response Caching
 builder.Services.AddResponseCaching(options =>
@@ -84,25 +107,6 @@ builder.Services.AddResponseCompression(options =>
     options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
 });
 
-// Add Antiforgery for CSRF protection
-builder.Services.AddAntiforgery(options =>
-{
-    options.HeaderName = "X-XSRF-TOKEN";
-    options.Cookie.Name = "__Host-Csrf";
-    options.Cookie.HttpOnly = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
-    options.SuppressXFrameOptionsHeader = false;
-});
-
-// DbContext with connection pooling
-builder.Services.AddDbContextPool<TodoDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")),
-    poolSize: 128);
-
-// Dependency Injection
-builder.Services.AddApplication();
-builder.Services.AddInfrastructure(builder.Configuration);
 
 // MediatR
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateTodoCommand).Assembly));
@@ -133,9 +137,10 @@ builder.Services.AddHealthChecks()
 // Configure ProblemDetails for consistent error responses
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
-    options.SuppressModelStateInvalidFilter = true;
+    options.SuppressModelStateInvalidFilter = true; // We'll handle this ourselves
 });
 
+// Add ProblemDetails for consistent error responses
 builder.Services.AddProblemDetails();
 
 // Add OpenTelemetry logging
@@ -143,16 +148,36 @@ builder.Logging.AddOpenTelemetry(options =>
 {
     options.IncludeFormattedMessage = true;
     options.IncludeScopes = true;
+    // You can add resource attributes or exporters here if needed
 });
 
-// CORS policy
+// builder.Services.AddOpenTelemetry()
+//    .ConfigureResource(resource => resource
+//        .AddService("TodoSystem.API"))
+//    .WithTracing(tracing => tracing
+//        .AddAspNetCoreInstrumentation()
+//        .AddHttpClientInstrumentation()
+//        .AddOtlpExporter() // Exports to OTLP endpoint if OTEL_EXPORTER_OTLP_ENDPOINT is set
+//    )
+//    .WithMetrics(metrics => metrics
+//        .AddAspNetCoreInstrumentation()
+//        .AddHttpClientInstrumentation()
+//        .AddRuntimeInstrumentation()
+//        .AddOtlpExporter()
+//    );
+
+// CORS policy name
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
+// Add CORS services with a named policy (adjust origins as needed)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: MyAllowSpecificOrigins,
         policy =>
         {
-            policy.WithOrigins("https://localhost:7148")
+            policy.WithOrigins(
+                    "https://localhost:7148" // Your dev HTTPS port
+                )
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         });
@@ -183,18 +208,19 @@ app.MapDefaultEndpoints();
 // Response Compression (early in pipeline)
 app.UseResponseCompression();
 
-// Use OWASP Secure Headers
+// Use OWASP Secure Headers with default recommended configuration
+// See: https://github.com/GaProgMan/OwaspHeaders.Core#secure-headers
 app.UseSecureHeadersMiddleware(
     SecureHeadersMiddlewareBuilder
         .CreateBuilder()
-        .UseHsts()
-        .UseXFrameOptions()
-        .UseContentTypeOptions()
-        .UseContentSecurityPolicy()
+        .UseHsts() // HTTP Strict Transport Security
+        .UseXFrameOptions() // Prevent clickjacking
+        .UseContentTypeOptions() // Prevent MIME sniffing
+        .UseContentSecurityPolicy() // Adds a default Content-Security-Policy
         .UsePermittedCrossDomainPolicies()
         .UseReferrerPolicy()
         .UseCacheControl()
-        .UseXssProtection()
+        .UseXssProtection() // Adds X-XSS-Protection: 0 (modern browsers ignore, but harmless)
         .UseCrossOriginResourcePolicy()
         .Build()
 );
@@ -215,10 +241,14 @@ app.UseCustomExceptionHandler();
 app.UseRequestResponseLogging();
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Enable CORS middleware (must be after UseRouting and before UseAuthorization)
 app.UseCors(MyAllowSpecificOrigins);
+
+// Antiforgery middleware (must run after auth)
 app.UseAntiforgery();
 
-// Emit XSRF token
+// Emit a JS-readable XSRF token cookie on safe GETs for SPA clients
 var antiforgery = app.Services.GetRequiredService<IAntiforgery>();
 app.Use(async (context, next) =>
 {
@@ -232,7 +262,7 @@ app.Use(async (context, next) =>
                 tokens.RequestToken!,
                 new CookieOptions
                 {
-                    HttpOnly = false,
+                    HttpOnly = false, // JS readable for SPA to send in header
                     Secure = true,
                     SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict,
                     IsEssential = true
@@ -249,7 +279,7 @@ app.UseRateLimiter();
 
 app.MapHealthChecks("/health");
 
-// Map controllers with output caching
+// Map MVC controllers (ExternalTodosController)
 app.MapControllers();
 app.MapFeatureEndpoints();
 

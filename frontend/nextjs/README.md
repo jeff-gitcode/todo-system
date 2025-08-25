@@ -1,5 +1,118 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+
+## Architecture Diagram
+```mermaid
+graph TD
+  subgraph Frontend
+    A[Next.js App – app/]
+    B[Shadcn/UI Components – components/]
+    C[Tailwind CSS]
+    D[React Query – TanStack]
+    E[Storybook – stories/&comma; .storybook/]
+    F[Playwright/Jest/Vitest – e2e/&comma; tests/]
+    G[Better Auth Client]
+  end
+
+  subgraph API_Layer
+    H[api/auth – Auth Endpoints]
+    I[api/todos – Todo Endpoints]
+    J[Middleware – middleware.ts]
+  end
+
+  subgraph Backend
+    K[Prisma ORM – prisma/]
+    L[Postgres DB]
+    M[Better Auth Server]
+    N[json-server – db.json]
+  end
+
+  A -->|UI| B
+  A -->|Styling| C
+  A -->|State| D
+  A -->|Testing| E
+  A -->|Testing| F
+  A -->|Auth| G
+  A -->|API Calls| H
+  A -->|API Calls| I
+  A -->|Protected Routing| J
+
+  H -->|DB Access| K
+  I -->|DB Access| K
+  K -->|Data| L
+  G -->|Session| M
+  M -->|DB| K
+
+  N -->|Mock Data| A
+
+  J -->|Route Protection| A
+```
+
+## Flow Chart
+```mermaid
+flowchart TD
+  User[User] --> UI[Next.js UI – app/]
+  UI --> Auth[Better Auth Client]
+  UI --> Todos[React Query – Todos]
+  UI --> Storybook[Storybook]
+  UI --> Tests[Playwright/Jest/Vitest]
+  UI --> APIAuth[api/auth]
+  UI --> APITodos[api/todos]
+  APIAuth --> Middleware[Middleware – middleware.ts]
+  APITodos --> Middleware
+  Middleware --> Prisma[Prisma ORM – prisma/]
+  Prisma --> DB[Postgres DB]
+  Auth --> BetterAuthServer[Better Auth Server]
+  BetterAuthServer --> Prisma
+  APITodos --> JsonServer[json-server – db.json]
+  JsonServer --> UI
+```
+
+## Sequence Diagram
+```mermaid
+sequenceDiagram
+    participant User
+    participant Nextjs-UI
+    participant BetterAuth-Client
+    participant ReactQuery
+    participant API-Auth
+    participant API-Todos
+    participant Middleware
+    participant Prisma
+    participant Postgres-DB
+    participant BetterAuth-Server
+    participant JsonServer
+
+    User->>Nextjs-UI: Interacts with UI
+    Nextjs-UI->>BetterAuth-Client: Authenticate/Register/Login
+    BetterAuth-Client->>API-Auth: Send credentials
+    API-Auth->>Middleware: Validate request
+    Middleware->>Prisma: Query user
+    Prisma->>Postgres-DB: Fetch user data
+    Postgres-DB-->>Prisma: Return user data
+    Prisma-->>Middleware: Return user info
+    Middleware-->>API-Auth: Auth result
+    API-Auth-->>BetterAuth-Client: JWT/session
+
+    Nextjs-UI->>ReactQuery: Fetch todos
+    ReactQuery->>API-Todos: GET /api/todos
+    API-Todos->>Middleware: Check auth
+    Middleware->>Prisma: Query todos
+    Prisma->>Postgres-DB: Fetch todos
+    Postgres-DB-->>Prisma: Return todos
+    Prisma-->>Middleware: Return todos
+    Middleware-->>API-Todos: Todos result
+    API-Todos-->>ReactQuery: Todos data
+    ReactQuery-->>Nextjs-UI: Show todos
+
+    Nextjs-UI->>JsonServer: (dev) Fetch mock todos
+    JsonServer-->>Nextjs-UI: Return mock data
+
+    Nextjs-UI->>Storybook: Develop/test UI
+    Nextjs-UI->>Playwright/Jest/Vitest: Run tests
+```
+
+
 ## Getting Started
 
 First, run the development server:

@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.Antiforgery; // Add this
-using Microsoft.AspNetCore.Http;        // Add this for CookieOptions
+using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Formatting.Compact;
@@ -17,11 +17,12 @@ using TodoSystem.API.Middleware;
 using TodoSystem.API;
 using Microsoft.AspNetCore.Mvc;
 using OwaspHeaders.Core.Extensions;
-using OwaspHeaders.Core.Models; // Add this at the top for custom config
-using Microsoft.Net.Http.Headers; // For HeaderNames
+using OwaspHeaders.Core.Models;
+using Microsoft.Net.Http.Headers;
+using System.Threading.RateLimiting;
 
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console(new CompactJsonFormatter()) // Structured JSON logs
+    .WriteTo.Console(new CompactJsonFormatter())
     .CreateBootstrapLogger();
 
 Log.Information("Starting up");
@@ -29,9 +30,6 @@ Log.Information("Starting up");
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
-
-// Logging, should disable serilog in aspire for structured logging
-// builder.Host.UseSerilog();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -58,9 +56,10 @@ builder.Services.AddAntiforgery(options =>
     options.SuppressXFrameOptionsHeader = false;
 });
 
-// DbContext
-builder.Services.AddDbContext<TodoDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+// DbContext with connection pooling
+builder.Services.AddDbContextPool<TodoDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")),
+    poolSize: 128);
 
 // Dependency Injection
 builder.Services.AddApplication();
@@ -136,10 +135,9 @@ builder.Services.AddHealthChecks()
 // Configure ProblemDetails for consistent error responses
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
-    options.SuppressModelStateInvalidFilter = true; // We'll handle this ourselves
+    options.SuppressModelStateInvalidFilter = true;
 });
 
-// Add ProblemDetails for consistent error responses
 builder.Services.AddProblemDetails();
 
 // Add OpenTelemetry logging
@@ -147,40 +145,38 @@ builder.Logging.AddOpenTelemetry(options =>
 {
     options.IncludeFormattedMessage = true;
     options.IncludeScopes = true;
-    // You can add resource attributes or exporters here if needed
 });
 
-// builder.Services.AddOpenTelemetry()
-//    .ConfigureResource(resource => resource
-//        .AddService("TodoSystem.API"))
-//    .WithTracing(tracing => tracing
-//        .AddAspNetCoreInstrumentation()
-//        .AddHttpClientInstrumentation()
-//        .AddOtlpExporter() // Exports to OTLP endpoint if OTEL_EXPORTER_OTLP_ENDPOINT is set
-//    )
-//    .WithMetrics(metrics => metrics
-//        .AddAspNetCoreInstrumentation()
-//        .AddHttpClientInstrumentation()
-//        .AddRuntimeInstrumentation()
-//        .AddOtlpExporter()
-//    );
-
-// CORS policy name
+// CORS policy
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
-
-// Add CORS services with a named policy (adjust origins as needed)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: MyAllowSpecificOrigins,
         policy =>
         {
-            policy.WithOrigins(
-                    "https://localhost:7148" // Your dev HTTPS port
-                )
+            policy.WithOrigins("https://localhost:7148")
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         });
 });
+
+// Add Rate Limiting
+builder.Services.AddRateLimiter(options =>
+{
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.User.Identity?.Name ?? "anonymous",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100, // max requests per window
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            }));
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
+
+// builder.Services.AddHostedService<TodoSystem.Infrastructure.Services.KafkaConsumerService>();
 
 var app = builder.Build();
 
@@ -194,14 +190,14 @@ app.UseResponseCompression();
 app.UseSecureHeadersMiddleware(
     SecureHeadersMiddlewareBuilder
         .CreateBuilder()
-        .UseHsts() // HTTP Strict Transport Security
-        .UseXFrameOptions() // Prevent clickjacking
-        .UseContentTypeOptions() // Prevent MIME sniffing
-        .UseContentSecurityPolicy() // Adds a default Content-Security-Policy
+        .UseHsts()
+        .UseXFrameOptions()
+        .UseContentTypeOptions()
+        .UseContentSecurityPolicy()
         .UsePermittedCrossDomainPolicies()
         .UseReferrerPolicy()
         .UseCacheControl()
-        .UseXssProtection() // Adds X-XSS-Protection: 0 (modern browsers ignore, but harmless)
+        .UseXssProtection()
         .UseCrossOriginResourcePolicy()
         .Build()
 );
@@ -222,14 +218,10 @@ app.UseCustomExceptionHandler();
 app.UseRequestResponseLogging();
 app.UseAuthentication();
 app.UseAuthorization();
-
-// Enable CORS middleware (must be after UseRouting and before UseAuthorization)
 app.UseCors(MyAllowSpecificOrigins);
-
-// Antiforgery middleware (must run after auth)
 app.UseAntiforgery();
 
-// Emit a JS-readable XSRF token cookie on safe GETs for SPA clients
+// Emit XSRF token
 var antiforgery = app.Services.GetRequiredService<IAntiforgery>();
 app.Use(async (context, next) =>
 {
@@ -243,7 +235,7 @@ app.Use(async (context, next) =>
                 tokens.RequestToken!,
                 new CookieOptions
                 {
-                    HttpOnly = false, // JS readable for SPA to send in header
+                    HttpOnly = false,
                     Secure = true,
                     SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict,
                     IsEssential = true
@@ -254,9 +246,13 @@ app.Use(async (context, next) =>
 });
 
 app.UseHttpsRedirection();
+
+// Enable Rate Limiting middleware
+app.UseRateLimiter();
+
 app.MapHealthChecks("/health");
 
-// Map MVC controllers (ExternalTodosController)
+// Map controllers with output caching
 app.MapControllers();
 app.MapFeatureEndpoints();
 

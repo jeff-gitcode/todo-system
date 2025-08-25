@@ -8,6 +8,7 @@ using Polly;
 using Polly.Extensions.Http;
 using TodoSystem.Application.Services;
 using TodoSystem.Domain.Repositories;
+using TodoSystem.Infrastructure.Configuration;
 using TodoSystem.Infrastructure.Data;
 using TodoSystem.Infrastructure.ExternalServices;
 using TodoSystem.Infrastructure.Repositories;
@@ -63,6 +64,15 @@ namespace TodoSystem.Infrastructure
 
                 return new ExternalTodoServiceCachingDecorator(baseService, cacheService, logger);
             });
+
+            // Register Kafka configuration
+            services.Configure<KafkaConfig>(configuration.GetSection("Kafka"));
+
+            // Register Kafka producer
+            services.AddSingleton<IEventPublisher, KafkaProducerService>();
+
+            // Register Kafka consumer as hosted service (if you want it to run in the background)
+            // services.AddHostedService<KafkaConsumerService>();
 
             return services;
         }

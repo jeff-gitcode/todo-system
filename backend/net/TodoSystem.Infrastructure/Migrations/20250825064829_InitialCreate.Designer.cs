@@ -12,8 +12,8 @@ using TodoSystem.Infrastructure.Data;
 namespace TodoSystem.Infrastructure.Migrations
 {
     [DbContext(typeof(TodoDbContext))]
-    [Migration("20250808063435_AddUserEntity")]
-    partial class AddUserEntity
+    [Migration("20250825064829_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

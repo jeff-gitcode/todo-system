@@ -32,7 +32,7 @@ public class ExternalTodoServiceCachingDecorator : IExternalTodoService
             {
                 _logger.LogInformation("Fetching todos from external service (cache miss)");
                 var todos = await _innerService.GetTodosAsync(cancellationToken);
-                return todos.ToList(); // Materialize the enumerable
+                return todos; // Materialize the enumerable
             },
             CacheExpiration,
             cancellationToken) ?? Enumerable.Empty<TodoDto>();

@@ -2,6 +2,84 @@
 
 This is the .NET backend API for the Todo System application built with .NET 9. It provides comprehensive endpoints for managing todos, user authentication, external API integration, and includes advanced features like caching, security hardening, and comprehensive testing.
 
+## System Diagram
+```mermaid
+flowchart TD
+    subgraph Client
+        A[TodoSystem.Client - Web/Mobile]
+    end
+
+    subgraph API
+        B[TodoSystem.API - ASP.NET Core 9]
+        B1[Authentication: JWT, CSRF]
+        B2[Controllers & Endpoints]
+        B3[Output/Response/Memory Caching]
+        B4[Security Headers]
+        B5[Health Checks]
+        B6[Logging & OpenTelemetry]
+    end
+
+    subgraph Application
+        C[TodoSystem.Application - CQRS, DTOs, Services]
+        C1[MediatR]
+        C2[Service Layer]
+    end
+
+    subgraph Domain
+        D[TodoSystem.Domain - Entities, Interfaces]
+    end
+
+    subgraph Infrastructure
+        E[TodoSystem.Infrastructure - EF Core, External APIs, Caching, Kafka]
+        E1[DbContext Pooling]
+        E2[Polly Resilience]
+        E3[Kafka Integration]
+        E4[External API Decorators]
+    end
+
+    subgraph Aspire
+        F[TodoSystem.AppHost - Aspire Orchestration]
+        F1[Service Discovery]
+        F2[Configuration]
+    end
+
+    subgraph ServiceDefaults
+        G[TodoSystem.ServiceDefaults - Shared Configs]
+    end
+
+    subgraph Database
+        H[PostgreSQL]
+    end
+
+    subgraph Kafka
+        I[Kafka Broker]
+    end
+
+    A <--> B
+    B --> B1
+    B --> B2
+    B --> B3
+    B --> B4
+    B --> B5
+    B --> B6
+    B2 --> C
+    C --> C1
+    C --> C2
+    C --> D
+    C --> E
+    E --> E1
+    E --> E2
+    E --> E3
+    E --> E4
+    E1 --> H
+    E3 --> I
+    B --> F
+    F --> F1
+    F --> F2
+    B --> G
+```
+
+
 ## Technology Stack
 
 - ASP.NET Core 9.0 Web API
@@ -118,6 +196,17 @@ dotnet add TodoSystem.API.Tests/TodoSystem.API.Tests.csproj reference TodoSystem
 dotnet add TodoSystem.Application.Tests/TodoSystem.Application.Tests.csproj reference TodoSystem.Application/TodoSystem.Application.csproj
 dotnet add TodoSystem.Domain.Tests/TodoSystem.Domain.Tests.csproj reference TodoSystem.Domain/TodoSystem.Domain.csproj
 dotnet add TodoSystem.Infrastructure.Tests/TodoSystem.Infrastructure.Tests.csproj reference TodoSystem.Infrastructure/TodoSystem.Infrastructure.csproj
+
+# add kafka
+# Add to TodoSystem.API
+dotnet add TodoSystem.API package Confluent.Kafka --version 2.3.0
+dotnet add TodoSystem.API package Microsoft.Extensions.Hosting --version 8.0.0
+
+# Add to TodoSystem.Infrastructure  
+dotnet add TodoSystem.Infrastructure package Confluent.Kafka --version 2.3.0
+
+# Add to TodoSystem.Application
+dotnet add TodoSystem.Application package Confluent.Kafka --version 2.3.0
 ```
 
 ### Quick Setup with Aspire

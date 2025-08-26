@@ -1,7 +1,8 @@
 # TodoSystem
 
-![Todo System Demo](./frontend/nextjs/doc/nextjs-demo.gif)
+![Todo System Frontend Demo](./frontend/nextjs/doc/nextjs-demo.gif)
 
+![Todo System Backend Demo](./backend/net/doc/net-todoapi-demo.gif)
 
 ## Setup
 

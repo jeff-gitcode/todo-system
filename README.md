@@ -1,7 +1,9 @@
 # TodoSystem
 
+## Frontend - Nextjs
 ![Todo System Frontend Demo](./frontend/nextjs/doc/nextjs-demo.gif)
 
+## Backend - .Net Core
 ![Todo System Backend Demo](./backend/net/doc/net-todoapi-demo.gif)
 
 ## Setup

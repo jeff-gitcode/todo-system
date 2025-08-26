@@ -1,25 +1,26 @@
+using MediatR;
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.Net.Http.Headers;
+using OwaspHeaders.Core.Extensions;
+using OwaspHeaders.Core.Models;
 using Serilog;
 using Serilog.Formatting.Compact;
-using TodoSystem.Infrastructure.Data;
-using TodoSystem.Infrastructure;
+using System.Text;
+using System.Threading.RateLimiting;
+using TodoSystem.API;
+using TodoSystem.API.Middleware;
 using TodoSystem.Application;
 using TodoSystem.Application.Todos.Commands;
 using TodoSystem.Application.Todos.Queries;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using MediatR;
-using Microsoft.Extensions.DependencyInjection;
-using TodoSystem.API.Middleware;
-using TodoSystem.API;
-using Microsoft.AspNetCore.Mvc;
-using OwaspHeaders.Core.Extensions;
-using OwaspHeaders.Core.Models;
-using Microsoft.Net.Http.Headers;
-using System.Threading.RateLimiting;
+using TodoSystem.Infrastructure;
+using TodoSystem.Infrastructure.Data;
+using TodoSystem.Infrastructure.ExternalServices;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(new CompactJsonFormatter())
@@ -62,6 +63,18 @@ builder.Services.AddAntiforgery(options =>
 // DbContext
 builder.Services.AddDbContext<TodoDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+//builder.Services.AddOptions<JsonPlaceholderOptions>()
+//    .Bind(builder.Configuration.GetSection(JsonPlaceholderOptions.SectionName))
+//.ValidateDataAnnotations()
+//.Validate(config=>
+//{
+//    // Custom validation logic
+//    return Uri.IsWellFormedUriString(config.BaseUrl, UriKind.Absolute)
+//        && config.TimeoutSeconds > 0
+//        && config.RetryCount >= 0
+//        && config.CacheDurationMinutes >= 0;
+//}, "Invalid JsonPlaceholder configuration");
 
 // Dependency Injection
 builder.Services.AddApplication();

@@ -1,18 +1,20 @@
-﻿using System.Net.Http;
+﻿using Confluent.Kafka;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory; // Add this using statement
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Caching.Memory; // Add this using statement
+using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Extensions.Http;
+using System.Net.Http;
 using TodoSystem.Application.Services;
 using TodoSystem.Domain.Repositories;
+using TodoSystem.Infrastructure.Configuration;
 using TodoSystem.Infrastructure.Data;
 using TodoSystem.Infrastructure.ExternalServices;
 using TodoSystem.Infrastructure.Repositories;
 using TodoSystem.Infrastructure.Services;
-using TodoSystem.Infrastructure.Configuration;
 
 namespace TodoSystem.Infrastructure
 {
@@ -32,23 +34,19 @@ namespace TodoSystem.Infrastructure
             services.AddScoped<IUserRepository, UserRepository>();
 
             // Configure JsonPlaceholder options
-            services.Configure<JsonPlaceholderOptions>(
-                configuration.GetSection(JsonPlaceholderOptions.SectionName));
+            services.Configure<JsonPlaceholderOptions>(configuration.GetSection(JsonPlaceholderOptions.SectionName));
+
+
+            // get options from jsonplaceholder section
+            // var jsonPlaceholderOptions = configuration.GetSection(JsonPlaceholderOptions.SectionName).Get<JsonPlaceholderOptions>();
 
             // Register HTTP client with your existing Polly policies
-            services.AddHttpClient<JsonPlaceholderService>(client =>
+            services.AddHttpClient<JsonPlaceholderService>()
+                .ConfigureHttpClient((serviceProvider, client) =>
             {
-                var jsonPlaceholderSection = configuration.GetSection(JsonPlaceholderOptions.SectionName);
-                if (!jsonPlaceholderSection.Exists())
-                {
-                    throw new InvalidOperationException($"Configuration section '{JsonPlaceholderOptions.SectionName}' not found. Please check your appsettings.json file.");
-                }
-
-                var options = jsonPlaceholderSection.Get<JsonPlaceholderOptions>();
-                if (options == null)
-                {
-                    throw new InvalidOperationException($"Failed to bind configuration section '{JsonPlaceholderOptions.SectionName}' to JsonPlaceholderOptions. Make sure Microsoft.Extensions.Configuration.Binder package is installed.");
-                }
+                // get options from jsonplaceholder section
+                var options = configuration.GetSection(JsonPlaceholderOptions.SectionName).Get<JsonPlaceholderOptions>();
+                //Console.WriteLine($"JsonPlaceholder BaseUrl: {options.BaseUrl}, Timeout: {options.TimeoutSeconds}s");
 
                 client.BaseAddress = new Uri(options.BaseUrl);
                 client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
@@ -59,7 +57,7 @@ namespace TodoSystem.Infrastructure
             .AddPolicyHandler(GetCircuitBreakerPolicy());
 
             // Register the base service
-            services.AddScoped<JsonPlaceholderService>();
+            // services.AddScoped<JsonPlaceholderService>();
 
             // Register cache service first
             services.AddSingleton<ICacheService, MemoryCacheService>();

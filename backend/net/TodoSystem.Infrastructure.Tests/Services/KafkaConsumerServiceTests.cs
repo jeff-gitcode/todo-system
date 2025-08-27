@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Reflection;
 using Confluent.Kafka;
 using Confluent.Kafka.Admin;
 using Microsoft.Extensions.DependencyInjection;
@@ -338,9 +339,57 @@ namespace TodoSystem.Infrastructure.Tests.Services
         // Expose method for testing
         public void TestProcessMessage(string message)
         {
-            var method = typeof(KafkaConsumerService).GetMethod("ProcessMessage",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            method?.Invoke(this, new object[] { message });
+            try
+            {
+                // Try to get the method with GetMethod first
+                var method = typeof(KafkaConsumerService).GetMethod("ProcessMessage",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+                if (method == null)
+                {
+                    // If not found, try with GetMethods and find by name
+                    var methods = typeof(KafkaConsumerService).GetMethods(
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+                    method = methods.FirstOrDefault(m => m.Name == "ProcessMessage");
+
+                    if (method == null)
+                    {
+                        // Last resort: try with DeclaredMethods which includes private methods
+                        methods = typeof(KafkaConsumerService).GetMethods(
+                            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.DeclaredOnly);
+                        method = methods.FirstOrDefault(m => m.Name == "ProcessMessage");
+
+                        if (method == null)
+                        {
+                            Console.WriteLine("Available methods:");
+                            foreach (var m in methods)
+                            {
+                                Console.WriteLine($"- {m.Name}");
+                            }
+
+                            throw new InvalidOperationException("ProcessMessage method not found in KafkaConsumerService");
+                        }
+                    }
+                }
+
+                method.Invoke(this, new object[] { message });
+            }
+            catch (TargetInvocationException ex)
+            {
+                // Unwrap the inner exception - this is important for reflection
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Exception during TestProcessMessage: {ex.InnerException.Message}");
+                    throw ex.InnerException;
+                }
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception finding method: {ex.Message}");
+                throw;
+            }
         }
 
         // Override to expose ConsumeMessages for testing

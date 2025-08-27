@@ -96,7 +96,7 @@ namespace TodoSystem.Infrastructure.Services
                         if (result != null)
                         {
                             _logger.LogInformation(
-                                "Consumed message: Key={Key}, Value={Value}, Partition={Partition}, Offset={Offset}",
+                                "Successfully consumed message: Key={Key}, Value={Value}, Partition={Partition}, Offset={Offset}",
                                 result.Message.Key,
                                 result.Message.Value,
                                 result.Partition.Value,

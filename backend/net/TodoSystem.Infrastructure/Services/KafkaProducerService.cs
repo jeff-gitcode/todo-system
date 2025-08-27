@@ -67,8 +67,10 @@ namespace TodoSystem.Infrastructure.Services
                     }
                 };
 
-                _logger.LogInformation("Publishing external todo created event for todo {TodoId} to topic {Topic}",
+                _logger.LogInformation("Successfully publishing external todo created event for todo {TodoId} to topic {Topic}",
                     eventData.Id, _kafkaConfig.ExternalTodoTopic);
+
+                _logger.LogInformation("Successfully publishing message: {Key}, {Message}", message.Key, message.Value);
 
                 var deliveryReport = await _producer.ProduceAsync(_kafkaConfig.ExternalTodoTopic, message, cancellationToken);
 

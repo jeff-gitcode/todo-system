@@ -221,6 +221,12 @@ app.MapDefaultEndpoints();
 // Response Compression (early in pipeline)
 app.UseResponseCompression();
 
+// Add HTTPS redirection middleware early in the pipeline
+app.UseHttpsRedirection();
+
+// Add HSTS middleware (HTTP Strict Transport Security)
+app.UseHsts();
+
 // Use OWASP Secure Headers with default recommended configuration
 // See: https://github.com/GaProgMan/OwaspHeaders.Core#secure-headers
 app.UseSecureHeadersMiddleware(
@@ -284,8 +290,6 @@ app.Use(async (context, next) =>
     }
     await next();
 });
-
-app.UseHttpsRedirection();
 
 // Enable Rate Limiting middleware
 app.UseRateLimiter();

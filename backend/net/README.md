@@ -463,6 +463,13 @@ Set these environment variables for production:
 - **OpenTelemetry**: Integrated for distributed tracing
 - **Cache Statistics**: Memory cache hit/miss metrics available
 
+## Configure Development SSL Certificates
+```bash
+# Trust the .NET development certificate
+dotnet dev-certs https --clean
+dotnet dev-certs https --trust
+```
+
 ## License
 
 [MIT](../../LICENSE)

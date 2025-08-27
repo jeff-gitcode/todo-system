@@ -18,6 +18,7 @@ namespace TodoSystem.Infrastructure.Services
         private readonly ILogger<KafkaConsumerService> _logger;
         private readonly IServiceScopeFactory _scopeFactory; // Use this for accessing scoped services
         private IConsumer<string, string>? _consumer;
+        private bool _disposed = false;
 
         public KafkaConsumerService(
             IOptions<KafkaConfig> kafkaConfig,
@@ -64,7 +65,7 @@ namespace TodoSystem.Infrastructure.Services
             await Task.Run(() => ConsumeMessages(stoppingToken), stoppingToken);
         }
 
-        private async Task<bool> CheckIfTopicExistsAsync()
+        protected virtual async Task<bool> CheckIfTopicExistsAsync()
         {
             try
             {
@@ -141,10 +142,21 @@ namespace TodoSystem.Infrastructure.Services
             }
         }
 
-        public override void Dispose()
+        public void Dispose()
         {
-            _consumer?.Dispose();
-            base.Dispose();
+            if (!_disposed)
+            {
+                try
+                {
+                    _consumer?.Dispose(); // This is what should happen but isn't
+                    _logger.LogInformation("Kafka consumer disposed");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error disposing Kafka consumer");
+                }
+                _disposed = true;
+            }
         }
     }
 }

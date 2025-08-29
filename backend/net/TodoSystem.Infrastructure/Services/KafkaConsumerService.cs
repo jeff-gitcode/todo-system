@@ -32,6 +32,12 @@ namespace TodoSystem.Infrastructure.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            if (!await CheckIfTopicExistsAsync())
+            {
+                _logger.LogWarning("Kafka topic '{Topic}' does not exist. Consumer will not start.", _kafkaConfig.ExternalTodoTopic);
+                return;
+            }
+
             var config = new ConsumerConfig
             {
                 BootstrapServers = _kafkaConfig.BootstrapServers,
@@ -39,14 +45,6 @@ namespace TodoSystem.Infrastructure.Services
                 AutoOffsetReset = AutoOffsetReset.Earliest,
                 EnableAutoCommit = true
             };
-
-            // Check if topic exists before subscribing
-            bool topicExists = await CheckIfTopicExistsAsync();
-            if (!topicExists)
-            {
-                _logger.LogWarning("Kafka topic '{Topic}' does not exist. Consumer will not start.", _kafkaConfig.ExternalTodoTopic);
-                return;
-            }
 
             _consumer = new ConsumerBuilder<string, string>(config)
                 .SetErrorHandler((_, error) =>
@@ -126,15 +124,11 @@ namespace TodoSystem.Infrastructure.Services
 
         private void ProcessMessage(string message)
         {
-            // Create a scope for accessing scoped services
             using var scope = _scopeFactory.CreateScope();
             try
             {
-                // Get required scoped services within this scope
-                // var dbContext = scope.ServiceProvider.GetRequiredService<TodoDbContext>();
-
-                // TODO: Process the message with your scoped services
-                // Example: Save message to database, update entity, etc.
+                var loggerService = scope.ServiceProvider.GetRequiredService<IKafkaMessageProcessor>();
+                loggerService.Execute(message);
             }
             catch (Exception ex)
             {

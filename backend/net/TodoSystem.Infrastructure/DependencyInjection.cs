@@ -72,6 +72,9 @@ namespace TodoSystem.Infrastructure
                 return new ExternalTodoServiceCachingDecorator(baseService, cacheService, logger);
             });
 
+            // Register Kafka services
+            services.AddSingleton<IKafkaMessageProcessor, KafkaMessageProcessor>();
+
             // Register Kafka configuration
             services.Configure<KafkaConfig>(configuration.GetSection("Kafka"));
 

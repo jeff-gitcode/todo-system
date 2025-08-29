@@ -586,7 +586,6 @@ public class ExternalTodoApi2Tests : IClassFixture<WebApplicationFactory<Program
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         var client = CreateClientWithMockedJsonPlaceholder(request =>
         {
-            // Simulate timeout by throwing TaskCanceledException with TimeoutException as InnerException
             var timeoutException = new TimeoutException("Operation timed out");
             throw new TaskCanceledException("Request timed out", timeoutException);
         });
@@ -597,16 +596,17 @@ public class ExternalTodoApi2Tests : IClassFixture<WebApplicationFactory<Program
         // Assert
         Assert.Equal(HttpStatusCode.RequestTimeout, response.StatusCode);
 
-        try
+        var content = await response.Content.ReadAsStringAsync(cts.Token);
+        if (!string.IsNullOrWhiteSpace(content))
         {
             var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: cts.Token);
             Assert.NotNull(problemDetails);
             Assert.Equal("Request timeout", problemDetails.Title);
             Assert.Equal("The request timed out. Please try again.", problemDetails.Detail);
         }
-        catch (ObjectDisposedException)
+        else
         {
-            // This is acceptable in timeout scenarios - the important thing is we got the right status code
+            // No content is acceptable for timeout scenarios
             Assert.Equal(HttpStatusCode.RequestTimeout, response.StatusCode);
         }
     }

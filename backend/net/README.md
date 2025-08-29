@@ -470,6 +470,97 @@ dotnet dev-certs https --clean
 dotnet dev-certs https --trust
 ```
 
+## SSL/TLS Setup
+
+### How to Generate SSL Certificates
+
+#### Generate a Private Key and Self-Signed Certificate
+
+```sh
+# Generate a private key
+openssl genrsa -out certs/todo-private.key 2048
+
+# Generate a certificate signing request (CSR)
+openssl req -new -key certs/todo-private.key -out certs/todo-certificate.csr
+
+# Generate a self-signed certificate (valid for 365 days)
+openssl x509 -req -days 365 -in certs/todo-certificate.csr -signkey certs/todo-private.key -out certs/todo-certificate.crt
+```
+
+#### (Optional) Convert to PFX for Windows/Kestrel
+
+```sh
+openssl pkcs12 -export -out certs/todo-certificate.pfx -inkey certs/todo-private.key -in certs/todo-certificate.crt
+```
+
+---
+
+### Configure ASP.NET Core to Use SSL/TLS
+
+#### Using appsettings.json
+
+```json
+"Kestrel": {
+  "Endpoints": {
+    "Https": {
+      "Url": "https://*:7148",
+      "Certificate": {
+        "Path": "certs/todo-certificate.pfx",
+        "Password": "todo-cert-password"
+      }
+    }
+  }
+}
+```
+
+#### Using .crt and .key Directly (Linux/Unix, .NET 5+)
+
+```csharp
+// Program.cs
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(7148, listenOptions =>
+    {
+        listenOptions.UseHttps("certs/todo-certificate.crt", "certs/todo-private.key");
+    });
+});
+```
+
+---
+
+### Enforce HTTPS and Redirect HTTP
+
+```csharp
+// Program.cs
+app.UseHttpsRedirection();
+app.UseHsts();
+```
+
+---
+
+### Development Certificate
+
+```sh
+dotnet dev-certs https --clean
+dotnet dev-certs https --trust
+```
+
+---
+
+### Verification
+
+- Access your API at `https://localhost:7148`
+- Use `openssl s_client -connect localhost:7148` to verify the certificate
+- Browser should show a secure lock
+
+---
+
+### Notes
+
+- For production, use certificates from a trusted CA (e.g., Let's Encrypt, Azure Key Vault).
+- Keep private keys and certificate files secure.
+- Update certificate paths and passwords as needed for your environment.
+
 ## License
 
 [MIT](../../LICENSE)

@@ -19,12 +19,12 @@ namespace TodoSystem.Infrastructure.Tests.Services
             mockKafkaConfig.Setup(x => x.Value).Returns(new KafkaConfig { ExternalTodoTopic = "test-topic", BootstrapServers = "localhost:9092" });
 
             var mockLogger = new Mock<ILogger<KafkaConsumerService>>();
-            var mockProcessor = new Mock<IKafkaMessageProcessor>();
+            var mockProcessor = new Mock<IKafkaMessageService>();
             var mockScope = new Mock<IServiceScope>();
             var mockScopeFactory = new Mock<IServiceScopeFactory>();
             var mockServiceProvider = new Mock<IServiceProvider>();
 
-            mockServiceProvider.Setup(x => x.GetService(typeof(IKafkaMessageProcessor)))
+            mockServiceProvider.Setup(x => x.GetService(typeof(IKafkaMessageService)))
                 .Returns(mockProcessor.Object);
             mockScope.Setup(x => x.ServiceProvider).Returns(mockServiceProvider.Object);
             mockScopeFactory.Setup(x => x.CreateScope()).Returns(mockScope.Object);
@@ -48,7 +48,7 @@ namespace TodoSystem.Infrastructure.Tests.Services
             mockKafkaConfig.Setup(x => x.Value).Returns(new KafkaConfig { ExternalTodoTopic = "test-topic", BootstrapServers = "localhost:9092" });
 
             var mockLogger = new Mock<ILogger<KafkaConsumerService>>();
-            var mockProcessor = new Mock<IKafkaMessageProcessor>();
+            var mockProcessor = new Mock<IKafkaMessageService>();
             var mockScope = new Mock<IServiceScope>();
             var mockScopeFactory = new Mock<IServiceScopeFactory>();
             var mockServiceProvider = new Mock<IServiceProvider>();
@@ -56,7 +56,7 @@ namespace TodoSystem.Infrastructure.Tests.Services
             var testException = new InvalidOperationException("Test exception");
             mockProcessor.Setup(x => x.Execute(It.IsAny<string>())).Throws(testException);
 
-            mockServiceProvider.Setup(x => x.GetService(typeof(IKafkaMessageProcessor)))
+            mockServiceProvider.Setup(x => x.GetService(typeof(IKafkaMessageService)))
                 .Returns(mockProcessor.Object);
             mockScope.Setup(x => x.ServiceProvider).Returns(mockServiceProvider.Object);
             mockScopeFactory.Setup(x => x.CreateScope()).Returns(mockScope.Object);
@@ -92,7 +92,7 @@ namespace TodoSystem.Infrastructure.Tests.Services
             var mockServiceProvider = new Mock<IServiceProvider>();
 
             // Simulate missing IKafkaMessageProcessor registration
-            mockServiceProvider.Setup(x => x.GetService(typeof(IKafkaMessageProcessor)))
+            mockServiceProvider.Setup(x => x.GetService(typeof(IKafkaMessageService)))
                 .Throws(new InvalidOperationException("Service not registered"));
             mockScope.Setup(x => x.ServiceProvider).Returns(mockServiceProvider.Object);
             mockScopeFactory.Setup(x => x.CreateScope()).Returns(mockScope.Object);

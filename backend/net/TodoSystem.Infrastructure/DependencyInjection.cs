@@ -73,7 +73,7 @@ namespace TodoSystem.Infrastructure
             });
 
             // Register Kafka services
-            services.AddSingleton<IKafkaMessageProcessor, KafkaMessageProcessor>();
+            services.AddSingleton<IKafkaMessageService, KafkaMessageService>();
 
             // Register Kafka configuration
             services.Configure<KafkaConfig>(configuration.GetSection("Kafka"));

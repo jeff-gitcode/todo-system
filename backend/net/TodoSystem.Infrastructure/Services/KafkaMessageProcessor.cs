@@ -2,16 +2,16 @@ using Microsoft.Extensions.Logging;
 
 namespace TodoSystem.Infrastructure.Services
 {
-    public interface IKafkaMessageProcessor
+    public interface IKafkaMessageService
     {
         void Execute(string message);
     }
 
-    public class KafkaMessageProcessor : IKafkaMessageProcessor
+    public class KafkaMessageService : IKafkaMessageService
     {
-        private readonly ILogger<KafkaMessageProcessor> _logger;
+        private readonly ILogger<KafkaMessageService> _logger;
 
-        public KafkaMessageProcessor(ILogger<KafkaMessageProcessor> logger)
+        public KafkaMessageService(ILogger<KafkaMessageService> logger)
         {
             _logger = logger;
         }

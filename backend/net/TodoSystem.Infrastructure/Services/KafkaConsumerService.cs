@@ -127,7 +127,7 @@ namespace TodoSystem.Infrastructure.Services
             using var scope = _scopeFactory.CreateScope();
             try
             {
-                var loggerService = scope.ServiceProvider.GetRequiredService<IKafkaMessageProcessor>();
+                var loggerService = scope.ServiceProvider.GetRequiredService<IKafkaMessageService>();
                 loggerService.Execute(message);
             }
             catch (Exception ex)

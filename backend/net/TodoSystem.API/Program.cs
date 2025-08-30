@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.Certificate;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,8 @@ using TodoSystem.Application.Todos.Queries;
 using TodoSystem.Infrastructure;
 using TodoSystem.Infrastructure.Data;
 using TodoSystem.Infrastructure.ExternalServices;
+using System.Security.Cryptography.X509Certificates;
+using TodoSystem.Application.Auth;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(new CompactJsonFormatter())
@@ -124,21 +127,53 @@ builder.Services.AddResponseCompression(options =>
 // MediatR
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateTodoCommand).Assembly));
 
+
+builder.Services.AddScoped<CertificateValidationService>();
+
 // JWT Authentication
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.TokenValidationParameters = new TokenValidationParameters
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+    };
+})
+.AddCertificate(options =>
+{
+    options.RevocationMode = X509RevocationMode.NoCheck;
+    options.AllowedCertificateTypes = CertificateTypes.All;
+    options.Events = new CertificateAuthenticationEvents
+    {
+        OnCertificateValidated = context =>
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
-        };
-    });
+            var validationService = context.HttpContext.RequestServices.GetService<CertificateValidationService>();
+            if (validationService != null && validationService.ValidateCertificate(context.ClientCertificate))
+            {
+                Console.WriteLine("Success");
+                context.Success();
+            }
+            else
+            {
+                Console.WriteLine("invalid cert 1");
+                context.Fail("invalid cert");
+            }
+
+            return Task.CompletedTask;
+        }
+    };
+});
 
 // Authorization
 builder.Services.AddAuthorization();
@@ -243,6 +278,8 @@ app.UseSecureHeadersMiddleware(
         .UseCrossOriginResourcePolicy()
         .Build()
 );
+
+
 
 if (app.Environment.IsDevelopment())
 {

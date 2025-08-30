@@ -487,11 +487,12 @@ openssl req -new -key certs/todo-private.key -out certs/todo-certificate.csr
 openssl x509 -req -days 365 -in certs/todo-certificate.csr -signkey certs/todo-private.key -out certs/todo-certificate.crt
 ```
 
-#### (Optional) Convert to PFX for Windows/Kestrel
+#### (Optional) Convert to PKCS#12 (.p12) for cross-platform use
 
 ```sh
-openssl pkcs12 -export -out certs/todo-certificate.pfx -inkey certs/todo-private.key -in certs/todo-certificate.crt
+openssl pkcs12 -export -out certs/todo-certificate.p12 -inkey certs/todo-private.key -in certs/todo-certificate.crt
 ```
+- You will be prompted for a password for the `.p12` file.
 
 ---
 
